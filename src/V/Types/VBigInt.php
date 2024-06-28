@@ -13,6 +13,10 @@ class VBigInt extends BaseType {
         return $value;
     }
 
+    public function empty() {
+        return 0;
+    }
+
     public function toTypeScript(): string
     {
         return 'number';

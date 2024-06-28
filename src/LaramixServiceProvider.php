@@ -5,6 +5,7 @@ namespace Laramix\Laramix;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Laramix\Laramix\Commands\LaramixCommand;
+use Laramix\Laramix\Commands\PublishLaramixRoutesManifest;
 use Laramix\Laramix\Commands\TypeScriptTransformCommand;
 
 class LaramixServiceProvider extends PackageServiceProvider
@@ -19,6 +20,7 @@ class LaramixServiceProvider extends PackageServiceProvider
         $package
             ->name('laramix')
             ->hasConfigFile()
-            ->hasCommand(TypeScriptTransformCommand::class);
+            ->hasCommand(TypeScriptTransformCommand::class)
+            ->hasCommand(PublishLaramixRoutesManifest::class);
     }
 }

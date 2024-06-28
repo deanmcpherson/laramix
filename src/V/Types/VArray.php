@@ -14,6 +14,11 @@ class VArray extends BaseType {
     {
 
     }
+
+    public function empty() {
+        return [];
+    }
+
     public function parseValueForType($value, BaseType $context) {
         if (!is_array($value)) {
             return $context->addIssue(0, $this, 'Not an array');

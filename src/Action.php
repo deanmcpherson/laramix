@@ -23,7 +23,7 @@ class Action {
                 abort(422, $parsedInput['errors']);
             }
         }
-        $responsePayload = ImplicitlyBoundMethod::call(app(), $this->handler, $input);
+        $responsePayload = ImplicitlyBoundMethod::call(app(), $this->handler, $parsedInput['value']);
         if ($this->responseValidation) {
             $responsePayload = json_decode(response($responsePayload)->getContent(), true);
             return $this->responseValidation->parse($responsePayload);

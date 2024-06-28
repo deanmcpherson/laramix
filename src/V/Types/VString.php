@@ -17,6 +17,10 @@ class VString extends BaseType {
         return $this;
     }
 
+    public function empty() {
+        return '';
+    }
+
     public function toTypeScript(): string
     {
         return 'string';

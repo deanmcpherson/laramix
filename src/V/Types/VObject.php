@@ -15,6 +15,18 @@ class VObject extends BaseType {
 
     }
 
+    public function empty() {
+        $empty = [];
+        foreach($this->schema as $key => $type) {
+            if ($type->isOptional()) {
+                $empty[$key] = null;
+                continue;
+            }
+            $empty[$key] = $type->empty();
+        }
+        return $empty;
+    }
+
     public function toTypeScript(): string
     {
         $schema = [];

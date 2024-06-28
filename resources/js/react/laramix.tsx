@@ -3,7 +3,10 @@ import { router } from '@inertiajs/react';
 import axios from 'axios';
 import React, {createContext, useState, useEffect, useContext} from 'react';
 
-export const LaramixContext = createContext({});
+export const LaramixContext = createContext<{components: any, depth: number}>({
+    components: {},
+    depth: 0
+});
 
 function makeAction(component: string, action: string, isInertia: boolean) {
 
@@ -14,7 +17,7 @@ function makeAction(component: string, action: string, isInertia: boolean) {
 }
 
 function transformActions(laramix: any) {
-    const actions = {};
+    const actions :{[key: string]: (args: any) => any} = {};
     laramix.actions.forEach((action: string) => {
         const isInertia = action.startsWith('$');
         if (isInertia) {
@@ -28,25 +31,42 @@ function transformActions(laramix: any) {
 
 }
 
+// @ts-expect-error
+const getRoutes = () => Laramix.routes;
+
+// @ts-expect-error
+const getManifest = () => Laramix.manifest;
+
 export function resolveComponent(component: string) {
     //@ts-ignore
-    const pages = LaramixProvider.routes;
+    const pages = getRoutes();
     const page = pages[`./routes/${component}.tsx`];
-    return page;
+    return page();
 }
 
+const resolved: {[key: string]: any} = {};
 
-export function useComponents(components) {
-
-
-    const [state, setState] = useState({})
+export function useComponents(components: {component: string, props: any, actions: string[]}[]) : {[key: string]: any} {
+    const [state, setState] = useState(resolved)
 
     useEffect(() => {
-        components.forEach(async ({component}) => {
-            const ready = await Promise.resolve(resolveComponent(component)).then((module) => module.default || module);
+        components.forEach(async ({component}: {component: string}) => {
+            if (resolved[component]) {
+                setState((prev) => {
+                    return {
+                        ...prev,
+                        [component]: resolved[component]
+                    };
+                });
+                return;
+            }
+            const ready = await resolveComponent(component).then((module: any) => module.default || module);
+            resolved[component] = ready;
             setState((prev) => {
-                prev[component] = ready;
-                return prev;
+                return {
+                    ...prev,
+                    [component]: ready
+                };
             });
         });
 
@@ -56,12 +76,12 @@ export function useComponents(components) {
 }
 
 
-export default function LaramixProvider({components} : {
+export default function Laramix({components} : {
     components: any
 }) {
 
     const ComponentModules = useComponents(components);
-    const preparedComponents = components.map((component) => {
+    const preparedComponents = components.map((component: any) => {
         return {
             ...component,
             render: ComponentModules[component.component]
@@ -84,16 +104,10 @@ export default function LaramixProvider({components} : {
                 )
             }
             </>
-
         </LaramixContext.Provider>
     );
 }
 
-
-export function useRoute<T>(): T {
-    const context = React.useContext(LaramixContext);
-    return context;
-}
 
 
 
@@ -118,4 +132,130 @@ export function Outlet() {
         }
     </>
     </LaramixContext.Provider>
+}
+
+const componentsPropCache: {[key: string]: any} = {};
+
+const resolveInertiaPageFromPath = (path: string) => {
+    const manifest = getManifest();
+    const parts = path.split('/');
+    const route =  manifest.routes.find(({path}: {path: string}) => {
+        //path can be /about or /about/{id} or /about/{id}/edit/{blah}
+        const pathParts = path.split('/');
+        if (pathParts.length !== parts.length) {
+            return false;
+        }
+        return pathParts.every((part, index) => {
+            if (part.startsWith('{') && part.endsWith('}')) {
+                return true;
+            }
+            return part === parts[index];
+        });
+    });
+    if (route) {
+
+        const page = {
+            url: path,
+            component: 'Laramix',
+            eager: true,
+            props: {
+                components: route.components.map((name:string) => {
+                    const baseComponent = manifest.components.find(({component}: any) => component === name);
+                    const cachedProps =loadCachedComponentProps(baseComponent.component, path);
+                    if (cachedProps) {
+                        return {
+                            ...baseComponent,
+                            props: cachedProps
+                        }
+                    }
+                    return baseComponent;
+            })
+            }
+        }
+
+        //Only eager load if we know what the props look like.
+        if (page.props.components.find(c => !c.props)) {
+            console.log('Not eager loading', page.props.components.find(c => !c.props))
+            return null;
+        }
+        return page;
+    }
+}
+
+const populateComponentCache = (page: {url: string, props?: {parameters?: Record<string,any>, components?: {component: string, props: any}[]}})  => {
+
+    if (!page.props?.components) {
+        return;
+    }
+    page.props.components.forEach(({component, props}: {component: string, props: any}) => {
+        if (!componentsPropCache[component]) {
+            componentsPropCache[component] = new Map<string,any>()
+        }
+
+        const routeParameters = page.props?.parameters ?? {};
+        const componentRouteParameterNames = component.match(/\$[a-zA-Z0-9]+/g) ?? [];
+        const parameterString = componentRouteParameterNames.map((name: string) => routeParameters[name.slice(1)] ?? '').join(',');
+        componentsPropCache[component].set(parameterString, props);
+    });
+
+}
+
+const loadCachedComponentProps = (component: string, path: string) => {
+    if (!componentsPropCache[component]) {
+        return null;
+    }
+    const pathFragments = path.split('/').slice(1);
+
+
+    //Extract variables from component name
+    const cacheKey = component.split('.')
+        .filter(part => !part.startsWith('_'))
+        .map((part: string, i: number) => {
+            if (part.includes('$')) {
+                return pathFragments[i];
+            }
+            return null;
+        })
+        .filter((part: string|null) => part)
+        .join(',');
+
+    return componentsPropCache[component].get(cacheKey);
+
+
+}
+
+router.on('navigate', (event: any) => {
+
+    if (!event.detail.page || event.detail.page?.eager) {
+        return;
+    }
+    populateComponentCache(event.detail.page);
+})
+
+export function Link({href, children, data, target, method = 'get'}: {
+    href: string,
+    children: any,
+    data?: any,
+    target?: string,
+    method?: 'get' | 'post' | 'put' | 'delete'
+ }) {
+
+
+    return <a href={href} onClick={async (e) => {
+        e.preventDefault();
+        const resolved = resolveInertiaPageFromPath(href);
+        if (resolved) {
+            try {
+                await router.setPage(resolved);
+                router.reload({onSuccess: populateComponentCache});
+            return;
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+        router[method](href, data, {
+            onSuccess: populateComponentCache
+        })
+    }} target={target}>{children}</a>
+
 }

@@ -17,6 +17,18 @@ class LaramixTypeTransformer implements Transformer {
     public function transform(ReflectionClass $class, string $name): ?TransformedType
     {
 
+        if (is_subclass_of($class->getName(), Validator::class, true)) {
+            $reflector = ClassTypeReflector::create($class);
+
+
+            return TransformedType::create(
+                $reflector->getReflectionClass(),
+                $reflector->getName(),
+                app($class->getName())->v()->toTypeScript(),
+                new MissingSymbolsCollection()
+            );
+
+        }
 
         if (is_subclass_of($class->getName(), LaramixComponentBase::class)) {
 

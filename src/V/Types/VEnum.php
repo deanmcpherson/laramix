@@ -8,6 +8,10 @@ class VEnum extends BaseType {
         return 'any';
     }
 
+    public function empty() {
+        return '';
+    }
+
     public function parseValueForType($value, BaseType $context) {
         return $value;
     }

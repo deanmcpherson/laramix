@@ -8,6 +8,10 @@ class VDiscriminatedUnion extends BaseType {
         return 'number';
     }
 
+    public function empty() {
+        return '';
+    }
+
     public function parseValueForType($value, BaseType $context) {
         return $value;
     }

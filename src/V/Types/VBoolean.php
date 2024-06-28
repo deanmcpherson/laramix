@@ -13,6 +13,10 @@ class VBoolean extends BaseType {
         return (bool) $value;
     }
 
+    public function empty() {
+        return false;
+    }
+
     public function toTypeScript(): string
     {
         return 'boolean';

@@ -7,7 +7,6 @@ use phpDocumentor\Reflection\Type;
 use ReflectionClass;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelTypeScriptTransformer\Transformers\DtoTransformer;
-use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 use Spatie\TypeScriptTransformer\Transformers\TransformsTypes;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfig;
 
@@ -31,6 +30,10 @@ class VDTO extends BaseType {
         if (!is_subclass_of($this->className, Data::class)) {
             throw new \Exception('Class does not extend LaravelData');
         }
+    }
+
+    public function empty() {
+        return $this->className::empty();
     }
 
     public function toTypeScript(): string

@@ -5,8 +5,10 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Response;
+use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
 use ReflectionFunction;
+use \Illuminate\Contracts\Container\BindingResolutionException;
 
 class LaramixComponent {
     public function __construct
@@ -26,6 +28,47 @@ class LaramixComponent {
 
     public static function namespaceToName(string $namespace) {
         return str($namespace)->replace('＄','$')->replace('→', '.')->__toString();
+    }
+
+    public function getName() {
+        return $this->name;
+    }
+
+    public function toManifest() {
+        $compiled = $this->compile();
+
+        return [
+            'component' => $this->name,
+            'actions' => $compiled['actions'],
+            'props' => $this->deriveDefaultProps(),
+        ];
+    }
+
+    public function deriveDefaultProps(): ?array {
+        $compiled = $this->compile();
+        $props = $compiled['_props'] ?? null;
+        if (!$props) {
+            return [];
+        }
+        $reflection =  match (true) {
+            is_a($props, Closure::class) => new ReflectionClosure($props),
+            //is_a($props, Action::class) => new ReflectionMethod($props->handler),
+            default => null
+        };
+        if (!$reflection) {
+            return null;
+        }
+
+        $returns = $reflection->getReturnType();
+        if (!$returns) {
+            return null;
+        }
+        $returns = $returns->getName();
+        if (is_subclass_of($returns, Validator::class, true)) {
+            return app($returns)->defaults();
+        }
+
+        return null;
     }
 
     private static $compiled = [];
@@ -146,7 +189,13 @@ class LaramixComponent {
             if ($component['_actions'][$action] instanceof Action) {
                 $args = ['input' => $args];
             }
-            return ImplicitlyBoundMethod::call(app(), $component['_actions'][$action], $args);
+            try {
+                return ImplicitlyBoundMethod::call(app(), $component['_actions'][$action], $args);
+            } catch (BindingResolutionException $e) {
+
+                throw new BindingResolutionException( 'Failed to call route action "' . $this->name . '@' . $action .'": ' . $e->getMessage(), 0, $e);
+
+            }
         }
 
         abort(404);
@@ -168,6 +217,9 @@ class LaramixComponent {
         unset($component['_classes']);
         if (isset($component['_props'])) {
             $component['props'] =  ImplicitlyBoundMethod::call(app(), $component['_props'], request()->route()->parameters());
+            if (is_subclass_of($component['props'], Validator::class)) {
+                $component['props'] = $component['props']->__invoke();
+            }
             //$component['props'] =  app()->call($component['_props'], request()->route()->parameters());
             unset($component['_props']);
         }

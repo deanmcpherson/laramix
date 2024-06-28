@@ -15,7 +15,9 @@ abstract class BaseType {
     protected bool $optional = false;
 
     abstract protected function parseValueForType(mixed $value, BaseType $context);
-
+    public function empty() {
+        return null;
+    }
     /**
      *
      * @param mixed $value

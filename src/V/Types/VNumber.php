@@ -12,6 +12,10 @@ class VNumber extends BaseType {
         return 'number';
     }
 
+    public function empty() {
+        return 0;
+    }
+
     public function parseValueForType($value, BaseType $context) {
         if (!is_numeric($value)) {
             throw new \Exception('Value is not a number');
