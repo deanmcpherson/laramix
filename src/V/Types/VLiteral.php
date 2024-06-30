@@ -1,9 +1,10 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 class VLiteral extends BaseType {
-    public function toTypeScript(): string
+    public function toTypeScript(MissingSymbolsCollection $collection): string
     {
         return 'any';
     }

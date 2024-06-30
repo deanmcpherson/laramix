@@ -7,8 +7,8 @@ use Closure;
 class Action {
     public function __construct(
         public Closure $handler,
-        public ?BaseType $requestValidation = null,
-        public ?BaseType $responseValidation = null
+        public ?BaseType $requestType = null,
+        public ?BaseType $responseType = null
     )
     {
 
@@ -16,22 +16,23 @@ class Action {
 
     public function __invoke($input)
     {
-        if ($this->requestValidation) {
-            $parsedInput = $this->requestValidation->safeParse($input);
+        $parsedInput = false;
+        if ($this->requestType) {
+            $parsedInput = $this->requestType->safeParse($input);
 
             if (!$parsedInput['ok']) {
                 abort(422, $parsedInput['errors']);
             }
         }
-        $responsePayload = ImplicitlyBoundMethod::call(app(), $this->handler, $parsedInput['value']);
-        if ($this->responseValidation) {
+        $responsePayload = ImplicitlyBoundMethod::call(app(), $this->handler, $parsedInput ? $parsedInput['value'] : $input);
+        if ($this->responseType) {
             $responsePayload = json_decode(response($responsePayload)->getContent(), true);
-            return $this->responseValidation->parse($responsePayload);
+            return $this->responseType->parse($responsePayload);
         }
         return $responsePayload;
     }
 
     public function isInertia() {
-        return !$this->responseValidation;
+        return !$this->responseType;
     }
 }

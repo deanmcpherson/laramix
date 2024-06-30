@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 import axios from 'axios';
 import React, {createContext, useState, useEffect, useContext} from 'react';
 
-export const LaramixContext = createContext<{components: any, depth: number}>({
+export const LaramixContext = createContext<{components: any, eager: true|undefined, depth: number}>({
     components: {},
     depth: 0
 });
@@ -76,8 +76,9 @@ export function useComponents(components: {component: string, props: any, action
 }
 
 
-export default function Laramix({components} : {
-    components: any
+export default function Laramix({components, eager} : {
+    components: any,
+    eager: true|undefined
 }) {
 
     const ComponentModules = useComponents(components);
@@ -91,6 +92,7 @@ export default function Laramix({components} : {
     return (
         <LaramixContext.Provider value={{
             components: preparedComponents,
+            eager: eager,
             depth: 0
             //   actions: transformActions(laramix)
         }} >
@@ -98,6 +100,7 @@ export default function Laramix({components} : {
                 preparedComponents[0].render?.(
                     {
                         component: components[0].component,
+                        eager,
                         props: components[0].props,
                         actions: transformActions(components[0])
                     },
@@ -115,17 +118,19 @@ export function Outlet() {
 
     const context = useContext(LaramixContext);
 
-    const {components, depth} = context;
+    const {components, depth, eager} = context;
     const newDepth = depth + 1;
     const nextComponent = components[newDepth];
     return <LaramixContext.Provider value={{
         components,
+        eager,
         depth: newDepth
     }}>
         <>
         {
             nextComponent?.render?.({
                 component: nextComponent.component,
+                eager,
                 props: nextComponent.props,
                 actions: transformActions(nextComponent)
             })
@@ -157,8 +162,8 @@ const resolveInertiaPageFromPath = (path: string) => {
         const page = {
             url: path,
             component: 'Laramix',
-            eager: true,
             props: {
+                eager: true,
                 components: route.components.map((name:string) => {
                     const baseComponent = manifest.components.find(({component}: any) => component === name);
                     const cachedProps =loadCachedComponentProps(baseComponent.component, path);

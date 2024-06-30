@@ -1,6 +1,7 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 /**
  * @extends BaseType<int>
@@ -17,7 +18,7 @@ class VBigInt extends BaseType {
         return 0;
     }
 
-    public function toTypeScript(): string
+    public function toTypeScript(MissingSymbolsCollection $collection): string
     {
         return 'number';
     }

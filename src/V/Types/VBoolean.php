@@ -1,6 +1,7 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 /**
  * @extends BaseType<bool>
@@ -17,7 +18,7 @@ class VBoolean extends BaseType {
         return false;
     }
 
-    public function toTypeScript(): string
+    public function toTypeScript(MissingSymbolsCollection $collection): string
     {
         return 'boolean';
     }

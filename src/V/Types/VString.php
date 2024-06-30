@@ -1,6 +1,7 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 /**
  * @extends BaseType<string>
@@ -21,7 +22,7 @@ class VString extends BaseType {
         return '';
     }
 
-    public function toTypeScript(): string
+    public function toTypeScript(MissingSymbolsCollection $collection): string
     {
         return 'string';
     }

@@ -1,9 +1,10 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 /**
- * @extends BaseType<array<string, BaseType<mixed>>
+ * @extends BaseType<mixed>
  * */
 class VObject extends BaseType {
 
@@ -27,11 +28,11 @@ class VObject extends BaseType {
         return $empty;
     }
 
-    public function toTypeScript(): string
+    public function toTypeScript(MissingSymbolsCollection $collection): string
     {
         $schema = [];
         foreach ($this->schema as $key => $type) {
-            $part = "$key: {$type->toTypeScript()}";
+            $part = "$key: {$type->toTypeScript($collection)}";
             if ($type->isOptional()) {
              $part .= "|undefined|null";
             }

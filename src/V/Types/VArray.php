@@ -1,15 +1,14 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 /**
  * @template T
  * @extends BaseType<array<int, T>>
  * */
 class VArray extends BaseType {
-    /**
-     * @param T $type
-     */
+
     public function __construct(protected BaseType $type = new VAny())
     {
 
@@ -35,8 +34,8 @@ class VArray extends BaseType {
         return $value;
     }
 
-    public function toTypeScript(): string
+    public function toTypeScript(MissingSymbolsCollection $collection): string
     {
-        return  $this->type->toTypeScript() . '[]';
+        return  $this->type->toTypeScript($collection) . '[]';
     }
 }

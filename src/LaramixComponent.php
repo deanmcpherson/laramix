@@ -34,6 +34,14 @@ class LaramixComponent {
         return $this->name;
     }
 
+    public function hasProps(): bool{
+        return (bool) $this->compile()['_props'] ?? false;
+    }
+
+    public function propsFunction() {
+        return $this->compile()['_props'] ?? null;
+    }
+
     public function toManifest() {
         $compiled = $this->compile();
 
@@ -50,9 +58,17 @@ class LaramixComponent {
         if (!$props) {
             return [];
         }
+
+        if (is_a($props, Action::class)) {
+            if ($props->responseType) {
+                return $props->responseType->empty();
+            }
+            $props = $props->handler;
+        }
+
+
         $reflection =  match (true) {
             is_a($props, Closure::class) => new ReflectionClosure($props),
-            //is_a($props, Action::class) => new ReflectionMethod($props->handler),
             default => null
         };
         if (!$reflection) {
@@ -99,7 +115,7 @@ class LaramixComponent {
 
 
                 $contents .='
-                class actions extends \Laramix\Laramix\LaramixComponentActions {
+                class Props extends \Laramix\Laramix\LaramixComponentProps {
                     public static function info() {
                     return json_decode(
                     <<<\'EOT\'
@@ -155,7 +171,7 @@ class LaramixComponent {
             '_actions' => [],
             '_classes' => $classes ?? [],
         ];
-        if ($variables['props'] ?? null && $variables['props'] instanceof Closure) {
+        if ($variables['props'] ?? null && ($variables['props'] instanceof Closure ||  $variables['props'] instanceof Action)) {
             $props['_props'] = $variables['props'];
         }
         foreach ($variables as $key => $value) {
@@ -216,9 +232,13 @@ class LaramixComponent {
         unset($component['_actions']);
         unset($component['_classes']);
         if (isset($component['_props'])) {
-            $component['props'] =  ImplicitlyBoundMethod::call(app(), $component['_props'], request()->route()->parameters());
-            if (is_subclass_of($component['props'], Validator::class)) {
-                $component['props'] = $component['props']->__invoke();
+            if (is_a($component['_props'], Action::class)) {
+                $component['props'] =  $component['_props'](request()->route()->parameters());
+            } else {
+                $component['props'] =  ImplicitlyBoundMethod::call(app(), $component['_props'], request()->route()->parameters());
+                if (is_subclass_of($component['props'], Validator::class)) {
+                    $component['props'] = $component['props']->__invoke();
+                }
             }
             //$component['props'] =  app()->call($component['_props'], request()->route()->parameters());
             unset($component['_props']);

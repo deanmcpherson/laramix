@@ -2,14 +2,18 @@
 
 namespace Laramix\Laramix;
 
+use Closure;
 use phpDocumentor\Reflection\Type;
 use ReflectionClass;
 use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionNamedType;
 use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 use Spatie\TypeScriptTransformer\Structures\TransformedType;
 use Spatie\TypeScriptTransformer\Transformers\Transformer;
 use Spatie\TypeScriptTransformer\Transformers\TransformsTypes;
 use Spatie\TypeScriptTransformer\TypeReflectors\ClassTypeReflector;
+use Spatie\TypeScriptTransformer\TypeReflectors\MethodReturnTypeReflector;
 
 class LaramixTypeTransformer implements Transformer {
     use TransformsTypes;
@@ -19,20 +23,19 @@ class LaramixTypeTransformer implements Transformer {
 
         if (is_subclass_of($class->getName(), Validator::class, true)) {
             $reflector = ClassTypeReflector::create($class);
-
+            $missingSymbols = new MissingSymbolsCollection();
 
             return TransformedType::create(
                 $reflector->getReflectionClass(),
                 $reflector->getName(),
-                app($class->getName())->v()->toTypeScript(),
-                new MissingSymbolsCollection()
+                app($class->getName())->v()->toTypeScript($missingSymbols),
+                $missingSymbols
             );
 
         }
 
         if (is_subclass_of($class->getName(), LaramixComponentBase::class)) {
 
-            $file = $class->getFileName();
             $info = $class->getName()::info();
             $componentName = $info['component'];
             $path = $info['path'];
@@ -40,25 +43,59 @@ class LaramixTypeTransformer implements Transformer {
             $component = app(Laramix::class)->component($componentName, $path);
 
             return match(true) {
-               is_subclass_of($class->getName(), LaramixComponentActions::class) => $this->generateActionTypes($class, $component),
+               is_subclass_of($class->getName(), LaramixComponentProps::class) => $this->generateComponentTypes($class, $component),
                default => null
             };
         }
         return null;
     }
 
-    private function generateActionTypes(ReflectionClass $class, LaramixComponent $component): ?TransformedType {
+    private function generateComponentTypes(ReflectionClass $class, LaramixComponent $component): ?TransformedType {
+        $missingSymbols = new MissingSymbolsCollection();
 
         $reflector = ClassTypeReflector::create($class);
-        $missingSymbols = new MissingSymbolsCollection();
-        $actions =$component->actions();
 
+        $actionTypes = $this->generateActionTypes($component, $missingSymbols);
+        $propTypes = $this->generatePropTypes( $component, $missingSymbols);
+        return  TransformedType::create(
+            $reflector->getReflectionClass(),
+            $reflector->getName(),
+             "{
+                props: $propTypes;
+                actions: $actionTypes;
+                eager: true|undefined;
+             }",
+            $missingSymbols
+        );
+    }
+
+    private function generatePropTypes(LaramixComponent $component, MissingSymbolsCollection $missingSymbols): string {
+        $propsFunction = $component->propsFunction();
+
+        if ($propsFunction instanceof Action) {
+            if ($propsFunction->responseType) {
+                return $propsFunction->responseType->toTypeScript($missingSymbols);
+            }
+            $propsFunction = $propsFunction->handler;
+        }
+
+        if ($propsFunction instanceof Closure) {
+            $reflection = new ReflectionMethod($propsFunction, "__invoke");
+            return $this->reflectionToTypeScript($reflection, $missingSymbols);
+        }
+
+        return 'any';
+    }
+
+    private function generateActionTypes( LaramixComponent $component, MissingSymbolsCollection $missingSymbols): string {
+
+        $actions = $component->actions();
 
         $ts = '';
         foreach ($actions as $actionName => $method) {
 
             if ($method instanceof Action) {
-                $ts .= "$actionName: (input: " . ($method->requestValidation->toTypeScript() ?? 'any') . ') => ' . ($method->responseValidation?->toTypeScript() ?? 'any') . ";\n";
+                $ts .= "$actionName: (input: " . ($method->requestType?->toTypeScript($missingSymbols) ?? 'any') . ') => ' . ($method->responseType?->toTypeScript($missingSymbols) ?? 'any') . ";\n";
                 continue;
             }
 
@@ -78,11 +115,6 @@ class LaramixTypeTransformer implements Transformer {
             $ts .= "$actionName: ($argument) => void;\n";
         }
 
-        return TransformedType::create(
-            $reflector->getReflectionClass(),
-            $reflector->getName(),
-             "{ $ts }",
-            $missingSymbols
-        );
+        return "{ $ts }";
     }
 }

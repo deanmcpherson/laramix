@@ -1,8 +1,10 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 use Closure;
+
 
 /**
  * @template T
@@ -46,7 +48,7 @@ abstract class BaseType {
     }
 
 
-    abstract public function toTypeScript(): string;
+    abstract public function toTypeScript(MissingSymbolsCollection $collection): string;
     /**
      *
      * @param mixed $value
@@ -60,6 +62,7 @@ abstract class BaseType {
             [$method, $closure] = $after;
             $value = $closure($value);
         }
+        // @phpstan-ignore-next-line
         if ($this->issues) {
             $issues = $this->issues;
             $this->issues = [];

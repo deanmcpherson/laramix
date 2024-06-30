@@ -1,6 +1,7 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 use Spatie\TypeScriptTransformer\Actions\TranspileTypeToTypeScriptAction;
 use phpDocumentor\Reflection\Type;
@@ -36,17 +37,24 @@ class VDTO extends BaseType {
         return $this->className::empty();
     }
 
-    public function toTypeScript(): string
+    public function toTypeScript(MissingSymbolsCollection $collection): string
     {
 
         $dtoTransformer = new DtoTransformer(
             TypeScriptTransformerConfig::create(
-                config('typescript-transformer')
+               // config('typescript-transformer')
             )
         );
         $reflection = new ReflectionClass($this->className);
        // dd($dtoTransformer->transform($reflection, $this->className));
-        return $dtoTransformer->transform($reflection, $this->className)->transformed;
+        $transformed = $dtoTransformer->transform($reflection, $this->className);
+
+        foreach( $transformed->missingSymbols->all() as $symbol)
+        {
+            $collection->add($symbol);
+        }
+
+        return $transformed->transformed;
 
     }
 
