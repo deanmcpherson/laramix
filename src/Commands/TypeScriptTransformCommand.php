@@ -2,10 +2,10 @@
 
 namespace Laramix\Laramix\Commands;
 
-use Laramix\Laramix\TypeScriptTransformer\TypeScriptTransformer;
 use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
+use Laramix\Laramix\TypeScriptTransformer\TypeScriptTransformer;
 use Spatie\TypeScriptTransformer\Formatters\PrettierFormatter;
 use Spatie\TypeScriptTransformer\Structures\TransformedType;
 use Spatie\TypeScriptTransformer\TypeScriptTransformerConfig;

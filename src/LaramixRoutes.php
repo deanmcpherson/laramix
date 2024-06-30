@@ -1,6 +1,5 @@
 <?php
+
 namespace Laramix\Laramix;
 
-class LaramixRoutes {
-
-}
+class LaramixRoutes {}

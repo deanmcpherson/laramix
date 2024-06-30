@@ -1,25 +1,26 @@
 <?php
 
 namespace Laramix\Laramix\V\Types;
+
 use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 /**
  * @template T
+ *
  * @extends BaseType<array<int, T>>
  * */
-class VArray extends BaseType {
+class VArray extends BaseType
+{
+    public function __construct(protected BaseType $type = new VAny()) {}
 
-    public function __construct(protected BaseType $type = new VAny())
+    public function empty()
     {
-
-    }
-
-    public function empty() {
         return [];
     }
 
-    public function parseValueForType($value, BaseType $context) {
-        if (!is_array($value)) {
+    public function parseValueForType($value, BaseType $context)
+    {
+        if (! is_array($value)) {
             return $context->addIssue(0, $this, 'Not an array');
         }
         // check if array is associative
@@ -29,13 +30,14 @@ class VArray extends BaseType {
 
         $parsedValue = [];
         foreach ($value as $v) {
-          $parsedValue[] = $this->type->parseValueForType($v, $context);
+            $parsedValue[] = $this->type->parseValueForType($v, $context);
         }
+
         return $value;
     }
 
     public function toTypeScript(MissingSymbolsCollection $collection): string
     {
-        return  $this->type->toTypeScript($collection) . '[]';
+        return $this->type->toTypeScript($collection).'[]';
     }
 }

@@ -2,6 +2,4 @@
 
 namespace Laramix\Laramix;
 
-class LaramixComponentBase {
-
-}
+class LaramixComponentBase {}

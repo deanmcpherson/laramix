@@ -2,6 +2,4 @@
 
 namespace Laramix\Laramix;
 
-class LaramixComponentProps extends LaramixComponentBase {
-
-}
+class LaramixComponentProps extends LaramixComponentBase {}

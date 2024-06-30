@@ -2,44 +2,48 @@
 
 namespace Laramix\Laramix;
 
-use Laramix\Laramix\Data\ExampleDTO;
 use Inertia\Inertia;
 
-class LaramixRoute {
+class LaramixRoute
+{
     public function __construct(
         protected string $path,
         protected string $name
-    ) {
-    }
+    ) {}
 
-    public function getPath() : string {
+    public function getPath(): string
+    {
         return $this->path;
     }
 
-    public function getName() : string {
+    public function getName(): string
+    {
         return $this->name;
     }
 
-    public function components() {
-        $componentNames =  collect(explode('|', $this->name));
-        return $componentNames->map(function($componentName) {
+    public function components()
+    {
+        $componentNames = collect(explode('|', $this->name));
+
+        return $componentNames->map(function ($componentName) {
             return app(Laramix::class)->component($componentName);
         });
     }
 
-    public function toManifest() {
+    public function toManifest()
+    {
         return [
             'path' => $this->path,
-            'components' => $this->components()->map(fn($component) => $component->getName())->toArray()
+            'components' => $this->components()->map(fn ($component) => $component->getName())->toArray(),
         ];
     }
 
-    public function render() {
-
+    public function render()
+    {
 
         return Inertia::render('Laramix', [
-            'components' => $this->components()->map(fn($component) => $component->props()),
-            "parameters" => request()->route()->parameters()
+            'components' => $this->components()->map(fn ($component) => $component->props()),
+            'parameters' => request()->route()->parameters(),
         ]);
 
     }

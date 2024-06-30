@@ -2,14 +2,12 @@
 
 namespace Laramix\Laramix\Commands;
 
-use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Laramix\Laramix\Laramix;
 
 class PublishLaramixRoutesManifest extends Command
 {
-
     protected $signature = 'laramix:publish-routes-manifest
                             {--force : Force the operation to run when in production}
                             {--output= : Use another file to output}';
@@ -26,8 +24,6 @@ class PublishLaramixRoutesManifest extends Command
         return 0;
     }
 
-
-
     private function resolveOutputFile(): string
     {
         $path = $this->option('output');
@@ -38,5 +34,4 @@ class PublishLaramixRoutesManifest extends Command
 
         return resource_path($path);
     }
-
 }

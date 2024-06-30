@@ -4,13 +4,12 @@ namespace Laramix\Laramix;
 
 use Laramix\Laramix\V\Types\BaseType;
 
-abstract class Validator {
+abstract class Validator
+{
     public function __construct(
         protected array $input = []
-    )
-    {
+    ) {}
 
-    }
     /**
      * @return BaseType
      */
@@ -21,11 +20,13 @@ abstract class Validator {
         return $this->v()->parse($this->input);
     }
 
-    public function defaults() {
+    public function defaults()
+    {
         return $this->v()->empty();
     }
 
-    public static function from(array $input): self {
+    public static function from(array $input): self
+    {
         return new static($input);
     }
 }

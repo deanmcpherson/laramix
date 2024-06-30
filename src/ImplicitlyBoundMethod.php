@@ -34,8 +34,12 @@ class ImplicitlyBoundMethod extends BoundMethod
         if ($parameter->isVariadic()) {
             // this last param will pick up the rest - reindex any remaining parameters
             $parameters = array_merge(
-                array_filter($parameters, function ($key) { return ! is_int($key); }, ARRAY_FILTER_USE_KEY),
-                array_values(array_filter($parameters, function ($key) { return is_int($key); }, ARRAY_FILTER_USE_KEY))
+                array_filter($parameters, function ($key) {
+                    return ! is_int($key);
+                }, ARRAY_FILTER_USE_KEY),
+                array_values(array_filter($parameters, function ($key) {
+                    return is_int($key);
+                }, ARRAY_FILTER_USE_KEY))
             );
 
             return;
@@ -78,11 +82,17 @@ class ImplicitlyBoundMethod extends BoundMethod
     {
         $className = static::getParameterClassName($parameter);
 
-        if (is_null($className)) return null;
+        if (is_null($className)) {
+            return null;
+        }
 
-        if (static::isEnum($parameter)) return null;
+        if (static::isEnum($parameter)) {
+            return null;
+        }
 
-        if (! static::implementsInterface($parameter)) return $className;
+        if (! static::implementsInterface($parameter)) {
+            return $className;
+        }
 
         return null;
     }
@@ -91,11 +101,17 @@ class ImplicitlyBoundMethod extends BoundMethod
     {
         $className = static::getParameterClassName($parameter);
 
-        if (is_null($className)) return null;
+        if (is_null($className)) {
+            return null;
+        }
 
-        if (static::isEnum($parameter)) return $className;
+        if (static::isEnum($parameter)) {
+            return $className;
+        }
 
-        if (static::implementsInterface($parameter)) return $className;
+        if (static::implementsInterface($parameter)) {
+            return $className;
+        }
 
         return null;
     }
@@ -119,9 +135,13 @@ class ImplicitlyBoundMethod extends BoundMethod
     {
         $type = $parameter->getType();
 
-        if (! $type) return null;
+        if (! $type) {
+            return null;
+        }
 
-        if (! $type instanceof ReflectionNamedType) return null;
+        if (! $type instanceof ReflectionNamedType) {
+            return null;
+        }
 
         return (! $type->isBuiltin()) ? $type->getName() : null;
     }

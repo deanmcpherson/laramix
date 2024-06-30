@@ -2,11 +2,10 @@
 
 namespace Laramix\Laramix;
 
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Laramix\Laramix\Commands\LaramixCommand;
 use Laramix\Laramix\Commands\PublishLaramixRoutesManifest;
 use Laramix\Laramix\Commands\TypeScriptTransformCommand;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class LaramixServiceProvider extends PackageServiceProvider
 {
