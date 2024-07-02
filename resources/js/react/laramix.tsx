@@ -11,9 +11,9 @@ export const LaramixContext = createContext<{components: any, eager: true|undefi
 function makeAction(component: string, action: string, isInertia: boolean) {
 
     if (!isInertia) {
-        return (args: any) => axios.post(`/laramix/${component}/${action}`, {_args: args});
+        return (args: any) => axios.post(`/_laramix/${component}/${action}`, {_args: args});
     }
-    return (args: any) => router.post(`/laramix/${component}/${action}`, {_args: args});
+    return (args: any) => router.post(`/_laramix/${component}/${action}`, {_args: args});
 }
 
 function transformActions(laramix: any) {
@@ -41,6 +41,7 @@ export function resolveComponent(component: string) {
     //@ts-ignore
     const pages = getRoutes();
     const page = pages[`./routes/${component}.tsx`];
+
     return page();
 }
 
@@ -174,7 +175,7 @@ const resolveInertiaPageFromPath = (path: string) => {
                         }
                     }
                     return baseComponent;
-            })
+            }).filter(x => x)
             }
         }
 

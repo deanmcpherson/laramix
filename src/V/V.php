@@ -2,6 +2,7 @@
 
 namespace Laramix\Laramix\V;
 
+use Laramix\Laramix\V\Types\BaseType;
 use Laramix\Laramix\V\Types\VAny;
 use Laramix\Laramix\V\Types\VArray;
 use Laramix\Laramix\V\Types\VBigInt;
@@ -12,6 +13,7 @@ use Laramix\Laramix\V\Types\VLiteral;
 use Laramix\Laramix\V\Types\VNumber;
 use Laramix\Laramix\V\Types\VObject;
 use Laramix\Laramix\V\Types\VString;
+use Spatie\LaravelData\Data;
 
 class V
 {
@@ -54,6 +56,48 @@ class V
     public function array($schema = new VAny())
     {
         return new VArray($schema);
+    }
+
+    public function any() {
+        return new VAny();
+    }
+
+    public function infer(mixed $type) {
+        if (is_string($type)) {
+            return $this->string()->default($type);
+        }
+        if (is_int($type)) {
+            return $this->number()->default($type);
+        }
+        if (is_bool($type)) {
+            return $this->boolean()->default($type);
+        }
+        if (is_array($type)) {
+            //is associative array?
+            if (array_keys($type) !== range(0, count($type) - 1)) {
+                return $this->inferObject($type);
+            }
+            return $this->array();
+        }
+        if (is_object($type)) {
+            if (is_subclass_of($type, BaseType::class)) {
+                return $type;
+            }
+
+            if (is_subclass_of($type, Data::class)) {
+                return $this->dto(get_class($type));
+            }
+            return $this->inferObject($type);
+        }
+        return $this->any();
+    }
+
+    protected function inferObject($object) {
+        $inferredObject = [];
+        foreach ($object as $key => $value) {
+            $inferredObject[$key] = $this->infer($value);
+        }
+        return $this->object($inferredObject);
     }
 
     /**

@@ -8,13 +8,10 @@ class VDiscriminatedUnion extends BaseType
 {
     public function toTypeScript(MissingSymbolsCollection $collection): string
     {
-        return 'number';
+        return 'any';
     }
 
-    public function empty()
-    {
-        return '';
-    }
+    protected $default = [];
 
     public function parseValueForType($value, BaseType $context)
     {

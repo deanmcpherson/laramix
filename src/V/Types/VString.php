@@ -20,13 +20,17 @@ class VString extends BaseType
 
     public function email(): self
     {
+        $this->rules[] = 'email';
         return $this;
     }
 
-    public function empty()
+    public function url(): self
     {
-        return '';
+        $this->rules[] = 'url';
+        return $this;
     }
+
+    protected $default = '';
 
     public function toTypeScript(MissingSymbolsCollection $collection): string
     {

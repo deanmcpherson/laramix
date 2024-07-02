@@ -7,8 +7,10 @@ use Inertia\Inertia;
 class LaramixRoute
 {
     public function __construct(
-        protected string $path,
-        protected string $name
+        public string $path,
+        public string $name,
+        public array $middleware = [],
+        public bool $isLayout = false,
     ) {}
 
     public function getPath(): string
@@ -27,7 +29,7 @@ class LaramixRoute
 
         return $componentNames->map(function ($componentName) {
             return app(Laramix::class)->component($componentName);
-        });
+        })->filter(fn ($component) => $component->exists())->values();
     }
 
     public function toManifest()

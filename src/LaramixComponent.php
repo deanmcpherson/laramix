@@ -23,6 +23,10 @@ class LaramixComponent
 
     public const NAMESPACE = 'LaramixComponent';
 
+    public function exists() {
+        return file_exists($this->filePath);
+    }
+
     public static function nameToNamespace(string $name)
     {
         return str($name)->replace('$', '＄')->replace('.', '→')->__toString();
@@ -210,11 +214,15 @@ class LaramixComponent
         $args = $request->input('_args', []);
 
         if (in_array($action, $component['actions']) || in_array('$'.$action, $component['actions'])) {
-            if ($component['_actions'][$action] instanceof Action) {
+            $actionFn =$component['_actions'][$action];
+            if ($actionFn instanceof Action) {
+                if ($actionFn->middleware) {
+
+                }
                 $args = ['input' => $args];
             }
             try {
-                return ImplicitlyBoundMethod::call(app(), $component['_actions'][$action], $args);
+                return ImplicitlyBoundMethod::call(app(), $actionFn, $args);
             } catch (BindingResolutionException $e) {
 
                 throw new BindingResolutionException('Failed to call route action "'.$this->name.'@'.$action.'": '.$e->getMessage(), 0, $e);
@@ -222,6 +230,16 @@ class LaramixComponent
         }
 
         abort(404);
+    }
+
+    public function middlewareFor(string $actionName) {
+        $component = $this->compile();
+        $action = $component['_actions'][$actionName] ?? null;
+        if ($action instanceof Action) {
+            return $action->middleware;
+        }
+
+        return [];
     }
 
     public function classes()

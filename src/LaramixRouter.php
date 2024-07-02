@@ -44,17 +44,28 @@ class LaramixRouter
                 return [$laravelRouteComponent, $component];
             });
 
-            if ($hasRoot) {
+            if ($hasRoot && $parts->first()[1] !== '_root') {
                 $parts->unshift(['', '_root']);
             }
+
+
+            $route = new LaramixRoute(
+                $parts->map(fn ($part) => $part[0])->join('/'),
+                $parts->map(fn ($part) => $part[1])->filter()->join('|'),
+                $parts->map(fn ($part) => $part[1])->filter()
+                    ->reduce(function($middleware, $componentName) {
+
+                     $middleware = array_merge($middleware,
+                         app(Laramix::class)->component($componentName)->middlewareFor('props') ?? []);
+                     $middleware = array_unique($middleware);
+                    return $middleware;
+                    }, [])
+            );
             // This is a layout file, not a route.
             if ($parts->last()[0] === '' && ! str($parts->last()[1])->endsWith('_index')) {
-                return $routes;
+                $route->isLayout = true;
             }
-            $routes->push(new LaramixRoute(
-                $parts->map(fn ($part) => $part[0])->join('/'),
-                $parts->map(fn ($part) => $part[1])->filter()->join('|')
-            ));
+            $routes->push($route);
 
             return $routes;
         }, collect([]))
@@ -63,6 +74,23 @@ class LaramixRouter
             });
 
         return $routes;
+    }
+
+
+
+    public function componentActionRoutes() {
+        $actionRoutes = collect([]);
+        foreach ($this->routes() as $route) {
+            $routeComponentNames = str($route->name)->explode('|');
+            $lastComponent = app(Laramix::class)->component($routeComponentNames->last());
+
+            foreach ($lastComponent->actions() as $actionName => $actionValue) {
+                $middleware = array_merge($route->middleware,  $lastComponent->middlewareFor($actionName) ?? []);
+                $actionRoutes[] = new LaramixRoute('_laramix/' . $lastComponent->getName() . '/' . $actionName, $route->getName() . '.' . $actionName, $middleware);
+            }
+        }
+
+        return $actionRoutes;
     }
 
     public function resolve(string $routeName): LaramixRoute

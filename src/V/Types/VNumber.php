@@ -14,10 +14,8 @@ class VNumber extends BaseType
         return 'number';
     }
 
-    public function empty()
-    {
-        return 0;
-    }
+    protected $default = 0;
+
 
     public function parseValueForType($value, BaseType $context)
     {

@@ -10,7 +10,11 @@ class Action
     public function __construct(
         public Closure $handler,
         public ?BaseType $requestType = null,
-        public ?BaseType $responseType = null
+        public ?BaseType $responseType = null,
+        /**
+         * @var array<string>
+         */
+        public ?array $middleware = null
     ) {}
 
     public function __invoke($input)
@@ -18,7 +22,6 @@ class Action
         $parsedInput = false;
         if ($this->requestType) {
             $parsedInput = $this->requestType->safeParse($input);
-
             if (! $parsedInput['ok']) {
                 abort(422, $parsedInput['errors']);
             }

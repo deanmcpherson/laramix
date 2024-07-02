@@ -11,10 +11,8 @@ class VEnum extends BaseType
         return 'any';
     }
 
-    public function empty()
-    {
-        return '';
-    }
+    protected $default = '';
+
 
     public function parseValueForType($value, BaseType $context)
     {

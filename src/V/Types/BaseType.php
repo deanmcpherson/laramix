@@ -3,6 +3,7 @@
 namespace Laramix\Laramix\V\Types;
 
 use Closure;
+use Illuminate\Support\Facades\Validator;
 use Spatie\TypeScriptTransformer\Structures\MissingSymbolsCollection;
 
 /**
@@ -16,13 +17,15 @@ abstract class BaseType
 
     protected array $issues = [];
 
+    protected $default = null;
+
     protected bool $optional = false;
 
     abstract protected function parseValueForType(mixed $value, BaseType $context);
 
     public function empty()
     {
-        return null;
+        return is_null($this->default) ? null: $this->parse($this->default);
     }
 
     /**
@@ -34,7 +37,7 @@ abstract class BaseType
         $results = $this->safeParse($value);
         if (! $results['ok']) {
             $message = '';
-            foreach ($results['errors'] as $issue) {
+            foreach ($results['issues'] as $issue) {
                 [$code, $source, $msg] = $issue;
                 $message .= $msg.PHP_EOL;
             }
@@ -42,6 +45,13 @@ abstract class BaseType
         }
 
         return $results['value'];
+    }
+
+    public function default(mixed $value)
+    {
+        $this->default = $value;
+
+        return $this;
     }
 
     /**
@@ -57,10 +67,28 @@ abstract class BaseType
     /**
      * @return T
      */
-    public function safeParse(mixed $value)
+    public function safeParse(mixed $value, string $label = 'value')
     {
         $this->issues = [];
-        $value = $this->parseValueForType($value, $this);
+        try {
+           $value = $this->parseValueForType($value, $this);
+        } catch (\Exception $e) {
+            $this->addIssue(0, $this, $e->getMessage());
+        }
+        if ($this->rules) {
+            $rules = $this->rules;
+            if ($this->isOptional()) {
+                $rules[] = 'nullable';
+            }
+            $validator = Validator::make([$label => $value], [$label => $rules]);
+
+            if ($validator->fails()) {
+                foreach ($validator->errors()->all() as $error) {
+
+                    $this->addIssue(0, $this, $error);
+                }
+            }
+        }
 
         foreach ($this->after as $after) {
             [$method, $closure] = $after;
@@ -74,6 +102,7 @@ abstract class BaseType
             return [
                 'ok' => false,
                 'errors' => $this->summarizeIssues($issues),
+                'issues' => $issues,
             ];
         }
 
@@ -81,6 +110,16 @@ abstract class BaseType
             'ok' => true,
             'value' => $value,
         ];
+    }
+
+    public function rules($rules) {
+
+        if (is_string($rules)) {
+            $rules = explode('|', $rules);
+        }
+        //concat all rules
+        $this->rules = array_merge($this->rules, $rules);
+        return $this;
     }
 
     public function summarizeIssues(array $issues)

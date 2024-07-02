@@ -11,10 +11,7 @@ class VDate extends BaseType
         return 'string';
     }
 
-    public function empty()
-    {
-        return '';
-    }
+    protected $default = '';
 
     public function parseValueForType($value, BaseType $context)
     {

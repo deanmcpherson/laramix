@@ -13,8 +13,14 @@ class LaramixController extends Controller
         return $laramix->route($request->route()->getName())->render($request);
     }
 
-    public function action(Request $request, Laramix $laramix, string $component, string $action)
+    public function action(Request $request, Laramix $laramix)
     {
+
+        $parts = str($request->path())->replace('_laramix/', '')->explode('/');
+
+        assert($parts->count() === 2);
+        [$component, $action] = $parts->all();
+
         return $laramix->component($component)->handleAction($request, $action);
     }
 }

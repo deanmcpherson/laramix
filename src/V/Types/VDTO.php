@@ -29,11 +29,17 @@ class VDTO extends BaseType
         if (! is_subclass_of($this->className, Data::class)) {
             throw new \Exception('Class does not extend LaravelData');
         }
+
     }
+
+
 
     public function empty()
     {
-        return $this->className::empty();
+        if (is_null($this->default)) {
+            return $this->className::empty();
+        }
+        return $this->className::from($this->default);
     }
 
     public function toTypeScript(MissingSymbolsCollection $collection): string

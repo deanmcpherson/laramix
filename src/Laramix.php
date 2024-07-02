@@ -14,13 +14,25 @@ class Laramix
 
     public function routes()
     {
-        //actions route
-        Route::post('/laramix/{component}/{action}', [LaramixController::class, 'action'])->name('laramix.action');
         //view routes
-        app(LaramixRouter::class)
+
+        $router = app(LaramixRouter::class);
+
+        $router->componentActionRoutes()->each(function (LaramixRoute $route) {
+            Route::middleware($route->middleware)->post($route->getPath(), [LaramixController::class, 'action'])
+                ->name($route->getName());
+        });
+
+        $router
             ->routes()
             ->each(function (LaramixRoute $route) {
-                Route::get($route->getPath(), [LaramixController::class, 'view'])->name($route->getName());
+                if ($route->isLayout) {
+                    return;
+                }
+
+                Route::middleware($route->middleware)->get($route->getPath(), [LaramixController::class, 'view'])
+
+                ->name($route->getName());
             });
     }
 

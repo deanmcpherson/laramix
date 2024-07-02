@@ -13,10 +13,7 @@ class VArray extends BaseType
 {
     public function __construct(protected BaseType $type = new VAny()) {}
 
-    public function empty()
-    {
-        return [];
-    }
+    protected $default = [];
 
     public function parseValueForType($value, BaseType $context)
     {
@@ -24,7 +21,7 @@ class VArray extends BaseType
             return $context->addIssue(0, $this, 'Not an array');
         }
         // check if array is associative
-        if (array_keys($value) !== range(0, count($value) - 1)) {
+        if (array_keys($value) && array_keys($value) !== range(0, count($value) - 1)) {
             return $context->addIssue(0, $this, 'An associative array');
         }
 

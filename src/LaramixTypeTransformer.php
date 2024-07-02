@@ -99,7 +99,9 @@ class LaramixTypeTransformer implements Transformer
         foreach ($actions as $actionName => $method) {
 
             if ($method instanceof Action) {
-                $ts .= "$actionName: (input: ".($method->requestType?->toTypeScript($missingSymbols) ?? 'any').') => '.($method->responseType?->toTypeScript($missingSymbols) ?? 'any').";\n";
+                $inputType = $method->requestType?->toTypeScript($missingSymbols) ?? 'any';
+                $optional = $inputType === 'any' || $method->requestType?->isOptional() ? '?' : '';
+                $ts .= "$actionName: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? "any").') => '.($method->responseType?->toTypeScript($missingSymbols) ?? 'any').";\n";
 
                 continue;
             }

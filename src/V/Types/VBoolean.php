@@ -18,10 +18,7 @@ class VBoolean extends BaseType
         return (bool) $value;
     }
 
-    public function empty()
-    {
-        return false;
-    }
+    protected $default = false;
 
     public function toTypeScript(MissingSymbolsCollection $collection): string
     {

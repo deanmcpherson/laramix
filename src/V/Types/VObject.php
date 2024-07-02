@@ -69,7 +69,16 @@ class VObject extends BaseType
 
                 continue;
             }
-            $parsedValue[$key] = $type->parseValueForType($value[$key], $context);
+            $results = $type->safeParse($value[$key], $key);
+            if (!$results['ok']) {
+
+                foreach ($results['issues'] as $issue) {
+
+                    $context->addIssue(0, $this, $issue[2]);
+
+                }
+            }
+            $parsedValue[$key] = $results['value'] ?? null;
         }
 
         return $parsedValue;

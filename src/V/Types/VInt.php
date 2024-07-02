@@ -18,10 +18,7 @@ class VNumber extends BaseType
         return (int) $value;
     }
 
-    public function empty()
-    {
-        return 0;
-    }
+    protected $default = 0;
 
     public function toTypeScript(MissingSymbolsCollection $collection): string
     {
