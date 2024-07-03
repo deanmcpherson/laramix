@@ -32,6 +32,19 @@ class LaramixTypeTransformer implements Transformer
 
         }
 
+        if (is_a($class->getName(), Action::class, true)) {
+            $missingSymbols = new MissingSymbolsCollection();
+
+
+            $reflector = ClassTypeReflector::create($class);
+            return TransformedType::create(
+                $reflector->getReflectionClass(),
+                $reflector->getName(),
+                app(Laramix::class)->actionsTypeScript(),
+                $missingSymbols
+            );
+        }
+
         if (is_subclass_of($class->getName(), LaramixComponentBase::class)) {
 
             $info = $class->getName()::info();

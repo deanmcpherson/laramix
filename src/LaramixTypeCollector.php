@@ -11,7 +11,8 @@ class LaramixTypeCollector extends DefaultCollector
 {
     public function getTransformedType(ReflectionClass $class): ?TransformedType
     {
-        if (str($class->getName())->startsWith(LaramixComponent::NAMESPACE.'\\')) {
+
+        if ($class->getName() === Action::class || str($class->getName())->startsWith(LaramixComponent::NAMESPACE.'\\')) {
             $reflector = ClassTypeReflector::create($class);
 
             $transformedType = $reflector->getType()

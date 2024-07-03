@@ -9,8 +9,8 @@ class LaramixRouter
 
         $directory = app(Laramix::class)->routeDirectory();
         $files = collect(scandir($directory))
-            ->filter(fn ($file) => str($file)->endsWith('.tsx'))
-            ->map(fn ($file) => str($file)->replaceLast('.tsx', '')->toString())
+            ->filter(fn ($file) => str($file)->endsWith(['.tsx', '.php']))
+            ->map(fn ($file) => str($file)->replaceLast('.tsx', '')->replaceLast('.php', '')->toString())
             ->values();
         $hasRoot = $files->contains('_root');
 
@@ -24,18 +24,26 @@ class LaramixRouter
                 $isOptionalVariable = str($part)->startsWith('($') && str($part)->endsWith(')');
 
                 $laravelRouteComponent = '';
+                $laravelRoutePart = $part;
+
+                if(str($laravelRoutePart)->endsWith('_')){
+                    $laravelRoutePart = str($laravelRoutePart)->replaceLast('_', '');
+                }
+                if (str($laravelRoutePart)->startsWith('_'))  {
+                    $laravelRoutePart = str($laravelRoutePart)->replaceFirst('_', '');
+                }
                 if ($isVariable) {
-                    $laravelRouteComponent = '{'.str($part)->replace('$', '').'}';
+                    $laravelRouteComponent = '{'.str($laravelRoutePart)->replace('$', '').'}';
                 } elseif ($isOptionalVariable) {
-                    $laravelRouteComponent = '{'.str($part)->replace('($', '')->replace(')', '').'?}';
+                    $laravelRouteComponent = '{'.str($laravelRoutePart)->replace('($', '')->replace(')', '').'?}';
                 } elseif ($isOptional) {
-                    $laravelRouteComponent = '{'.str($part)->replace('(', '')->replace(')', '').'?}';
+                    $laravelRouteComponent = '{'.str($laravelRoutePart)->replace('(', '')->replace(')', '').'?}';
                 } elseif ($isSilent) {
                     $laravelRouteComponent = '';
                 } elseif ($nextDoesntNest) {
-                    $laravelRouteComponent = str($part)->replaceLast('_', '');
+                    $laravelRouteComponent = str($laravelRoutePart)->replaceLast('_', '');
                 } else {
-                    $laravelRouteComponent = $part;
+                    $laravelRouteComponent = $laravelRoutePart;
                 }
                 $component = $partsSoFar ? $partsSoFar.'.'.$part : $part;
                 $partsSoFar = $component;

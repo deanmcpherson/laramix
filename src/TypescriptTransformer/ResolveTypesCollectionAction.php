@@ -4,6 +4,8 @@ namespace Laramix\Laramix\TypeScriptTransformer;
 
 use Exception;
 use Generator;
+use Laramix\Laramix\Action;
+use Laramix\Laramix\Laramix;
 use Laramix\Laramix\LaramixComponent;
 use ReflectionClass;
 use Spatie\TypeScriptTransformer\Actions\ResolveClassesInPhpFileAction;
@@ -23,7 +25,8 @@ class ResolveTypesCollectionAction extends \Spatie\TypeScriptTransformer\Actions
 
                 $classes = (new ResolveClassesInPhpFileAction())->execute($fileInfo);
 
-                if (collect(['ts', 'tsx', 'jsx', 'js'])->contains($fileInfo->getExtension())) {
+                if (collect(['ts', 'tsx', 'jsx', 'js', 'php'])->contains($fileInfo->getExtension() && str($fileInfo->getPath())->contains(app(Laramix::class)->routeDirectory()))) {
+
                     $filename = LaramixComponent::nameToNamespace($fileInfo->getFilenameWithoutExtension());
                     $component = new LaramixComponent($fileInfo->getRealPath(), $filename);
                     foreach ($component->classes() as $name => $class) {
@@ -39,5 +42,6 @@ class ResolveTypesCollectionAction extends \Spatie\TypeScriptTransformer\Actions
 
             }
         }
+        yield "LaramixAction" => new ReflectionClass(Action::class);
     }
 }

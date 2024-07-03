@@ -24,6 +24,7 @@ class TypeScriptTransformer extends TypeScriptTransformerTypeScriptTransformer
         @file_put_contents($this->config->getOutputFile(),
             str(LaramixComponent::namespaceToName($contents))
                 ->replace(' '.LaramixComponent::NAMESPACE.'.', ' ')
+                ->replace('namespace Laramix.Laramix', 'namespace Laramix')
                 ->toString());
 
         (new FormatTypeScriptAction($this->config))->execute();

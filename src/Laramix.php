@@ -48,8 +48,11 @@ class Laramix
         })->values();
 
         $components = collect(scandir($this->routeDirectory()))
-            ->filter(fn ($file) => str($file)->endsWith('.tsx'))
-            ->map(fn ($file) => str($file)->replaceLast('.tsx', '')->toString())
+            ->filter(fn ($file) => str($file)->endsWith(['.tsx', '.php']))
+            ->map(fn ($file) => str($file)
+                ->replaceLast('.tsx', '')
+                ->replaceLast('.php', '')
+                ->toString())
             ->values()
             ->map(fn ($componentName) => $this->component($componentName)->toManifest())
             ->values();
@@ -61,10 +64,23 @@ class Laramix
 
     }
 
+    public function actionsTypeScript() {
+        $manifest = $this->routesManifest();
+        $items = [];
+        foreach ($manifest['components'] as $value) {
+            $component = $value['component'];
+            $items[]= "\"$component\": $component.Props['actions']";
+
+        }
+        return "{" . implode(";\n", $items) . "}";
+    }
+
     public function component(string $componentName): LaramixComponent
     {
         $filePath = $this->routeDirectory().'/'.$componentName.'.tsx';
-
+        if (!file_exists($filePath)) {
+            $filePath = $this->routeDirectory().'/'.$componentName.'.php';
+        }
         return new LaramixComponent(
             filePath: $filePath,
             name: $componentName
