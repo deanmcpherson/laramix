@@ -43,8 +43,8 @@ class Action
             return $this->responseType->parse($responsePayload);
         }
 
-        if (class_exists($this->responseType) && !is_a($responsePayload, !$this->responseType, true)) {
-            abort(500, 'Response type mismatch, expected '. $this->responseType);
+        if (class_exists($this->responseType) && ! is_a($responsePayload, ! $this->responseType, true)) {
+            abort(500, 'Response type mismatch, expected '.$this->responseType);
         }
 
         return $responsePayload;
@@ -55,6 +55,7 @@ class Action
         if (is_a($this->responseType, Response::class, true)) {
             return true;
         }
+
         return false;
     }
 }

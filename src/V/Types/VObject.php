@@ -70,7 +70,7 @@ class VObject extends BaseType
                 continue;
             }
             $results = $type->safeParse($value[$key], $key);
-            if (!$results['ok']) {
+            if (! $results['ok']) {
 
                 foreach ($results['issues'] as $issue) {
 

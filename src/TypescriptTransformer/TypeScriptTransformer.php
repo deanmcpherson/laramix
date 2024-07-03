@@ -11,8 +11,7 @@ use Symfony\Component\Finder\Finder;
 
 class TypeScriptTransformer extends TypeScriptTransformerTypeScriptTransformer
 {
-
-    private const hardcoded = <<<EOF
+    private const hardcoded = <<<'EOF'
     declare namespace Laramix {
         export interface VisitOptions {
             preserveScroll?: boolean
@@ -43,7 +42,7 @@ EOF;
             str(LaramixComponent::namespaceToName($contents))
                 ->replace(' '.LaramixComponent::NAMESPACE.'.', ' ')
                 ->replace('namespace Laramix.Laramix', 'namespace Laramix')
-                ->toString() . self::hardcoded);
+                ->toString().self::hardcoded);
 
         (new FormatTypeScriptAction($this->config))->execute();
 

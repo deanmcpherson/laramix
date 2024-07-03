@@ -42,6 +42,6 @@ class ResolveTypesCollectionAction extends \Spatie\TypeScriptTransformer\Actions
 
             }
         }
-        yield "LaramixAction" => new ReflectionClass(Action::class);
+        yield 'LaramixAction' => new ReflectionClass(Action::class);
     }
 }

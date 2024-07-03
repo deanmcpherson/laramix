@@ -31,8 +31,7 @@ class Laramix
                 }
 
                 Route::middleware($route->middleware)->get($route->getPath(), [LaramixController::class, 'view'])
-
-                ->name($route->getName());
+                    ->name($route->getName());
             });
     }
 
@@ -44,10 +43,10 @@ class Laramix
     public function routesManifest()
     {
         $routes = app(LaramixRouter::class)->routes()
-        ->filter(fn (LaramixRoute $route) => ! $route->isLayout)
-        ->map(function (LaramixRoute $route) {
-            return $route->toManifest();
-        })->values();
+            ->filter(fn (LaramixRoute $route) => ! $route->isLayout)
+            ->map(function (LaramixRoute $route) {
+                return $route->toManifest();
+            })->values();
 
         $components = collect(scandir($this->routeDirectory()))
             ->filter(fn ($file) => str($file)->endsWith(['.tsx', '.php']))
@@ -66,23 +65,26 @@ class Laramix
 
     }
 
-    public function actionsTypeScript() {
+    public function actionsTypeScript()
+    {
         $manifest = $this->routesManifest();
         $items = [];
         foreach ($manifest['components'] as $value) {
             $component = $value['component'];
-            $items[]= "\"$component\": $component.Props['actions']";
+            $items[] = "\"$component\": $component.Props['actions']";
 
         }
-        return "{" . implode(";\n", $items) . "}";
+
+        return '{'.implode(";\n", $items).'}';
     }
 
     public function component(string $componentName): LaramixComponent
     {
         $filePath = $this->routeDirectory().'/'.$componentName.'.tsx';
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             $filePath = $this->routeDirectory().'/'.$componentName.'.php';
         }
+
         return new LaramixComponent(
             filePath: $filePath,
             name: $componentName

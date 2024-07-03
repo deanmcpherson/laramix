@@ -21,12 +21,14 @@ class VString extends BaseType
     public function email(): self
     {
         $this->rules[] = 'email';
+
         return $this;
     }
 
     public function url(): self
     {
         $this->rules[] = 'url';
+
         return $this;
     }
 

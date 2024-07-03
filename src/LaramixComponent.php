@@ -24,7 +24,8 @@ class LaramixComponent
 
     public const NAMESPACE = 'LaramixComponent';
 
-    public function exists() {
+    public function exists()
+    {
         return file_exists($this->filePath);
     }
 
@@ -215,7 +216,7 @@ class LaramixComponent
         $args = $request->input('_args', []);
 
         if (in_array($action, $component['actions']) || in_array('$'.$action, $component['actions'])) {
-            $actionFn =$component['_actions'][$action];
+            $actionFn = $component['_actions'][$action];
             if ($actionFn instanceof Action) {
                 if ($actionFn->middleware) {
 
@@ -233,7 +234,8 @@ class LaramixComponent
         abort(404);
     }
 
-    public function middlewareFor(string $actionName) {
+    public function middlewareFor(string $actionName)
+    {
         $component = $this->compile();
         $action = $component['_actions'][$actionName] ?? null;
         if ($action instanceof Action) {

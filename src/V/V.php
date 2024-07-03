@@ -58,11 +58,13 @@ class V
         return new VArray($schema);
     }
 
-    public function any() {
+    public function any()
+    {
         return new VAny();
     }
 
-    public function infer(mixed $type) {
+    public function infer(mixed $type)
+    {
         if (is_string($type)) {
             return $this->string()->default($type);
         }
@@ -77,6 +79,7 @@ class V
             if (array_keys($type) !== range(0, count($type) - 1)) {
                 return $this->inferObject($type);
             }
+
             return $this->array();
         }
         if (is_object($type)) {
@@ -87,16 +90,20 @@ class V
             if (is_subclass_of($type, Data::class)) {
                 return $this->dto(get_class($type));
             }
+
             return $this->inferObject($type);
         }
+
         return $this->any();
     }
 
-    protected function inferObject($object) {
+    protected function inferObject($object)
+    {
         $inferredObject = [];
         foreach ($object as $key => $value) {
             $inferredObject[$key] = $this->infer($value);
         }
+
         return $this->object($inferredObject);
     }
 

@@ -26,10 +26,10 @@ class LaramixRouter
                 $laravelRouteComponent = '';
                 $laravelRoutePart = $part;
 
-                if(str($laravelRoutePart)->endsWith('_')){
+                if (str($laravelRoutePart)->endsWith('_')) {
                     $laravelRoutePart = str($laravelRoutePart)->replaceLast('_', '');
                 }
-                if (str($laravelRoutePart)->startsWith('_'))  {
+                if (str($laravelRoutePart)->startsWith('_')) {
                     $laravelRoutePart = str($laravelRoutePart)->replaceFirst('_', '');
                 }
                 if ($isVariable) {
@@ -56,17 +56,17 @@ class LaramixRouter
                 $parts->unshift(['', '_root']);
             }
 
-
             $route = new LaramixRoute(
                 $parts->map(fn ($part) => $part[0])->join('/'),
                 $parts->map(fn ($part) => $part[1])->filter()->join('|'),
                 $parts->map(fn ($part) => $part[1])->filter()
-                    ->reduce(function($middleware, $componentName) {
+                    ->reduce(function ($middleware, $componentName) {
 
-                     $middleware = array_merge($middleware,
-                         app(Laramix::class)->component($componentName)->middlewareFor('props') ?? []);
-                     $middleware = array_unique($middleware);
-                    return $middleware;
+                        $middleware = array_merge($middleware,
+                            app(Laramix::class)->component($componentName)->middlewareFor('props') ?? []);
+                        $middleware = array_unique($middleware);
+
+                        return $middleware;
                     }, [])
             );
             // This is a layout file, not a route.
@@ -84,17 +84,16 @@ class LaramixRouter
         return $routes;
     }
 
-
-
-    public function componentActionRoutes() {
+    public function componentActionRoutes()
+    {
         $actionRoutes = collect([]);
         foreach ($this->routes() as $route) {
             $routeComponentNames = str($route->name)->explode('|');
             $lastComponent = app(Laramix::class)->component($routeComponentNames->last());
 
             foreach ($lastComponent->actions() as $actionName => $actionValue) {
-                $middleware = array_merge($route->middleware,  $lastComponent->middlewareFor($actionName) ?? []);
-                $actionRoutes[] = new LaramixRoute('_laramix/' . $lastComponent->getName() . '/' . $actionName, $route->getName() . '.' . $actionName, $middleware);
+                $middleware = array_merge($route->middleware, $lastComponent->middlewareFor($actionName) ?? []);
+                $actionRoutes[] = new LaramixRoute('_laramix/'.$lastComponent->getName().'/'.$actionName, $route->getName().'.'.$actionName, $middleware);
             }
         }
 

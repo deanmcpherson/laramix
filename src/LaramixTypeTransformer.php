@@ -36,8 +36,8 @@ class LaramixTypeTransformer implements Transformer
         if (is_a($class->getName(), Action::class, true)) {
             $missingSymbols = new MissingSymbolsCollection();
 
-
             $reflector = ClassTypeReflector::create($class);
+
             return TransformedType::create(
                 $reflector->getReflectionClass(),
                 $reflector->getName(),
@@ -115,7 +115,7 @@ class LaramixTypeTransformer implements Transformer
             if ($method instanceof Action) {
                 $inputType = $method->requestType?->toTypeScript($missingSymbols) ?? 'any';
                 $optional = $inputType === 'any' || $method->requestType?->isOptional() ? '?' : '';
-                $ts .= "$actionName: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? "any").') => Promise<{data:'.($method->responseType?->toTypeScript($missingSymbols) ?? 'any')."}>;\n";
+                $ts .= "$actionName: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? 'any').') => Promise<{data:'.($method->responseType?->toTypeScript($missingSymbols) ?? 'any')."}>;\n";
 
                 continue;
             }

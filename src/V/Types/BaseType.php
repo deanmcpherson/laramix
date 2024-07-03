@@ -25,7 +25,7 @@ abstract class BaseType
 
     public function empty()
     {
-        return is_null($this->default) ? null: $this->parse($this->default);
+        return is_null($this->default) ? null : $this->parse($this->default);
     }
 
     /**
@@ -71,7 +71,7 @@ abstract class BaseType
     {
         $this->issues = [];
         try {
-           $value = $this->parseValueForType($value, $this);
+            $value = $this->parseValueForType($value, $this);
         } catch (\Exception $e) {
             $this->addIssue(0, $this, $e->getMessage());
         }
@@ -112,13 +112,15 @@ abstract class BaseType
         ];
     }
 
-    public function rules($rules) {
+    public function rules($rules)
+    {
 
         if (is_string($rules)) {
             $rules = explode('|', $rules);
         }
         //concat all rules
         $this->rules = array_merge($this->rules, $rules);
+
         return $this;
     }
 

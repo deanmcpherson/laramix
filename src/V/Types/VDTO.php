@@ -32,13 +32,12 @@ class VDTO extends BaseType
 
     }
 
-
-
     public function empty()
     {
         if (is_null($this->default)) {
             return $this->className::empty();
         }
+
         return $this->className::from($this->default);
     }
 

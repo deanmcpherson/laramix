@@ -16,7 +16,6 @@ class VNumber extends BaseType
 
     protected $default = 0;
 
-
     public function parseValueForType($value, BaseType $context)
     {
         if (! is_numeric($value)) {

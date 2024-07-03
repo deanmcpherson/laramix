@@ -13,7 +13,6 @@ class VEnum extends BaseType
 
     protected $default = '';
 
-
     public function parseValueForType($value, BaseType $context)
     {
         return $value;
