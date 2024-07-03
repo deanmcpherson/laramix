@@ -3,6 +3,7 @@
 namespace Laramix\Laramix;
 
 use Closure;
+use Laramix\Laramix\V\Types\BaseType;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -88,7 +89,7 @@ class LaramixTypeTransformer implements Transformer
         $propsFunction = $component->propsFunction();
 
         if ($propsFunction instanceof Action) {
-            if ($propsFunction->responseType) {
+            if ($propsFunction->responseType && is_subclass_of($propsFunction->responseType, BaseType::class, true)) {
                 return $propsFunction->responseType->toTypeScript($missingSymbols);
             }
             $propsFunction = $propsFunction->handler;
@@ -114,7 +115,7 @@ class LaramixTypeTransformer implements Transformer
             if ($method instanceof Action) {
                 $inputType = $method->requestType?->toTypeScript($missingSymbols) ?? 'any';
                 $optional = $inputType === 'any' || $method->requestType?->isOptional() ? '?' : '';
-                $ts .= "$actionName: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? "any").') => '.($method->responseType?->toTypeScript($missingSymbols) ?? 'any').";\n";
+                $ts .= "$actionName: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? "any").') => Promise<{data:'.($method->responseType?->toTypeScript($missingSymbols) ?? 'any')."}>;\n";
 
                 continue;
             }
@@ -129,9 +130,9 @@ class LaramixTypeTransformer implements Transformer
             }
 
             if ($argument) {
-                $argument = 'payload: {'.$argument.'}';
+                $argument = 'payload: {'.$argument.'},';
             }
-            $ts .= "$actionName: ($argument) => void;\n";
+            $ts .= "$actionName: ($argument options?: Laramix.VisitOptions) => Promise<any>;\n";
         }
 
         return "{ $ts }";

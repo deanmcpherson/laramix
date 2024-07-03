@@ -6,7 +6,7 @@ const LaramixContext = createContext<{
     components: ResolvedComponent[];
     actions: {
         [key: string]: {
-            [key:string]: (args: any) => any;
+            [key:string]: (args: any, options: any) => any;
         };
     }
     eager: true | undefined;
@@ -27,11 +27,11 @@ const LaramixContext = createContext<{
 
 function makeAction(component: string, action: string, isInertia: boolean) {
     if (!isInertia) {
-        return (args: any) =>
-            axios.post(`/_laramix/${component}/${action}`, { _args: args });
+        return (args: any, options: any) =>
+            axios.post(`/_laramix/${component}/${action}`, { _args: args }, options);
     }
-    return (args: any) =>
-        router.post(`/_laramix/${component}/${action}`, { _args: args });
+    return (args: any, options: any) =>
+        router.post(`/_laramix/${component}/${action}`, { _args: args },  options);
 }
 
 function transformActions(component: ResolvedComponent) {

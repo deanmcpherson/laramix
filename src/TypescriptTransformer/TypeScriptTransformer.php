@@ -11,6 +11,24 @@ use Symfony\Component\Finder\Finder;
 
 class TypeScriptTransformer extends TypeScriptTransformerTypeScriptTransformer
 {
+
+    private const hardcoded = <<<EOF
+    declare namespace Laramix {
+        export interface VisitOptions {
+            preserveScroll?: boolean
+            preserveState?: boolean
+            only?: string[]
+            replace?: boolean
+            preserveQuery?: boolean
+            preserveHash?: boolean
+            headers?: Record<string, string>
+            onError?: (error: Error) => void
+            onSuccess?: (page: any) => void
+            onCancel?: () => void
+        }
+    }
+EOF;
+
     public function transform(): TypesCollection
     {
         $typesCollection = (new ResolveTypesCollectionAction(
@@ -25,7 +43,7 @@ class TypeScriptTransformer extends TypeScriptTransformerTypeScriptTransformer
             str(LaramixComponent::namespaceToName($contents))
                 ->replace(' '.LaramixComponent::NAMESPACE.'.', ' ')
                 ->replace('namespace Laramix.Laramix', 'namespace Laramix')
-                ->toString());
+                ->toString() . self::hardcoded);
 
         (new FormatTypeScriptAction($this->config))->execute();
 

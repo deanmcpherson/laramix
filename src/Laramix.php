@@ -43,7 +43,9 @@ class Laramix
 
     public function routesManifest()
     {
-        $routes = app(LaramixRouter::class)->routes()->map(function (LaramixRoute $route) {
+        $routes = app(LaramixRouter::class)->routes()
+        ->filter(fn (LaramixRoute $route) => ! $route->isLayout)
+        ->map(function (LaramixRoute $route) {
             return $route->toManifest();
         })->values();
 
