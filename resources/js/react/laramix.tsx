@@ -1,6 +1,6 @@
 import { router } from "@inertiajs/react";
 import axios from "axios";
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useState, useEffect, useContext, ElementType } from "react";
 
 const LaramixContext = createContext<{
     components: ResolvedComponent[];
@@ -319,6 +319,7 @@ export function Outlet() {
     const { components, depth, eager } = context;
     const newDepth = depth + 1;
     const nextComponent = components[newDepth];
+    const Component = nextComponent?.render as ElementType;
     return (
         <LaramixContext.Provider
             value={{
@@ -327,18 +328,20 @@ export function Outlet() {
             }}
         >
             <>
-                {nextComponent?.render?.({
-                    component: nextComponent.component,
-                    eager,
-                    key: newDepth + nextComponent?.component,
-                    props: nextComponent.props,
-                    actions: context.actions[nextComponent.component],
-                })}
+                {Component && (
+                <Component
+                component={nextComponent.component}
+                eager={eager}
+                key={newDepth + nextComponent?.component}
+                props={nextComponent.props}
+                actions={context.actions[nextComponent.component]}
+                />)}
+
+
             </>
         </LaramixContext.Provider>
     );
 }
-
 export function Link({
     href,
     children,
