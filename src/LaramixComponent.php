@@ -74,7 +74,7 @@ class LaramixComponent
         }
 
         if (is_a($props, Action::class)) {
-            if ($props->responseType && is_subclass_of($props->responseType, BaseType::class, true)) {
+            if ($props->responseType) {
                 return $props->responseType->empty();
             }
             $props = $props->handler;

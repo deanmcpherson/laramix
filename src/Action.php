@@ -5,13 +5,15 @@ namespace Laramix\Laramix;
 use Closure;
 use Inertia\Response;
 use Laramix\Laramix\V\Types\BaseType;
+use ReflectionFunction;
 
 class Action
 {
     public function __construct(
         public ?Closure $handler,
         public ?BaseType $requestType = null,
-        public mixed $responseType = null,
+        public ?BaseType $responseType = null,
+        public ?bool $isInertia = false,
         /**
          * @var array<string>
          */
@@ -36,23 +38,29 @@ class Action
             return $responsePayload;
         }
 
-        if ($this->responseType instanceof BaseType) {
+        $responsePayload = is_scalar($responsePayload) ? $responsePayload : json_decode(response($responsePayload)->getContent(), true);
 
-            $responsePayload = is_scalar($responsePayload) ? $responsePayload : json_decode(response($responsePayload)->getContent(), true);
+        return $this->responseType->parse($responsePayload);
 
-            return $this->responseType->parse($responsePayload);
-        }
-
-        if (class_exists($this->responseType) && ! is_a($responsePayload, ! $this->responseType, true)) {
-            abort(500, 'Response type mismatch, expected '.$this->responseType);
-        }
-
-        return $responsePayload;
     }
 
     public function isInertia()
     {
-        if (is_a($this->responseType, Response::class, true)) {
+
+        if ($this->isInertia) {
+            return true;
+        }
+
+        if ($this->isInertia === false) {
+            return false;
+        }
+
+        if (!$this->handler) {
+            return false;
+        }
+        $reflection = new ReflectionFunction($this->handler);
+        $returnType = $reflection->getReturnType();
+        if ($returnType && is_a($returnType->getName(), Response::class, true)) {
             return true;
         }
 
