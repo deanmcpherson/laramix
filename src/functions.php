@@ -10,13 +10,15 @@ function action(
     ?Closure $handler = null,
     ?BaseType $requestType = null,
     ?BaseType $responseType = null,
+    ?bool $isInertia = null,
     ?array $middleware = null
 ) {
     return new Action(
         handler: $handler,
         requestType: $requestType,
         responseType: $responseType,
-        middleware: $middleware
+        middleware: $middleware,
+        isInertia: $isInertia
     );
 }
 
