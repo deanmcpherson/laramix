@@ -19,7 +19,7 @@ class Laramix
         $router = app(LaramixRouter::class);
 
         $router->componentActionRoutes()->each(function (LaramixRoute $route) {
-            Route::middleware($route->middleware)->post($route->getPath(), [LaramixController::class, 'action'])
+            Route::middleware($route->middleware)->put($route->getPath(), [LaramixController::class, 'action'])
                 ->name($route->getName());
         });
 
