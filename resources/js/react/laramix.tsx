@@ -90,12 +90,13 @@ const Laramix = ({ routes, manifest }: LaramixProps) => {
     }, {});
 
 
-    function resolveComponent(component: string) {
-        //@ts-ignore
+    async function resolveComponent(component: string) {
         const pages = getRoutes();
         const page = pages[`./routes/${component}.tsx`];
-
-        return page();
+        if (typeof page === 'function') {
+            return page();
+        }
+        return page;
     }
 
     const componentsPropCache: { [key: string]: any } = {};
