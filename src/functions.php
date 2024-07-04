@@ -9,7 +9,7 @@ use Laramix\Laramix\V\V;
 function action(
     ?Closure $handler = null,
     ?BaseType $requestType = null,
-    ?BaseType $responseType = null,
+    mixed $responseType = null,
     ?array $middleware = null
 ) {
     return new Action(
