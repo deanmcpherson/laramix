@@ -199,7 +199,7 @@ class LaramixComponent
                 $reflection = new ReflectionFunction($value);
                 $returns = $reflection->getReturnType();
                 //? Could make default not an inertia response? Perhaps configurable.
-                $isInertia = ($returns && is_a($returns->getName(), Response::class, true));
+                $isInertia = (!$returns || is_a($returns->getName(), Response::class, true));
 
                 $props['actions'][] = $isInertia ? '$'.$key : $key;
                 $props['_actions'][$key] = $value;
