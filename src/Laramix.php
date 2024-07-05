@@ -9,7 +9,7 @@ class Laramix
 {
     public function routeDirectory()
     {
-        return resource_path('js/routes');
+        return config('laramix.routes_directory');
     }
 
     public function routes()
