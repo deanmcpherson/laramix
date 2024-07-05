@@ -150,8 +150,8 @@ class LaramixComponent
                     Storage::disk('local')->makeDirectory('laramix');
                 }
 
-                Storage::put('laramix/'.$name.'.php', $contents);
-                $filePath = Storage::path('laramix/'.$name.'.php');
+                Storage::disk('local')->put('laramix/'.$name.'.php', $contents);
+                $filePath = Storage::disk('local')->path('laramix/'.$name.'.php');
                 require $filePath;
 
                 $variables = array_map(function (mixed $variable) {
