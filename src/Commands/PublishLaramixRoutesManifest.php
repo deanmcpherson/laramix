@@ -29,7 +29,7 @@ class PublishLaramixRoutesManifest extends Command
         $path = $this->option('output');
 
         if ($path === null) {
-            return resource_path('js/laramix-routes.manifest.json');
+            return config('laramix.manifest_path');
         }
 
         return resource_path($path);

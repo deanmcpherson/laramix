@@ -26,12 +26,11 @@ const LaramixContext = createContext<{
 });
 
 function makeAction(component: string, action: string, isInertia: boolean) {
-    if (!isInertia) {
-        return (args: any, options: any) =>
-            axios.put(`/_laramix/${component}/${action}`, { _args: args }, options);
+    return {
+        call: (args: any, options: any) => axios.put(`/_laramix/${component}/${action}`, { _args: args }, options),
+        visit: (args: any, options: any) => router.put(`/_laramix/${component}/${action}`, { _args: args },  options),
     }
-    return (args: any, options: any) =>
-        router.put(`/_laramix/${component}/${action}`, { _args: args },  options);
+
 }
 
 function transformActions(component: ResolvedComponent) {

@@ -115,7 +115,11 @@ class LaramixTypeTransformer implements Transformer
             if ($method instanceof Action) {
                 $inputType = $method->requestType?->toTypeScript($missingSymbols) ?? 'any';
                 $optional = $inputType === 'any' || $method->requestType?->isOptional() ? '?' : '';
-                $ts .= "$actionName: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? 'any').') => Promise<{data:'.($method->responseType?->toTypeScript($missingSymbols) ?? 'any')."}>;\n";
+                $ts .= "$actionName:
+                {
+                    call: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? 'any').') => Promise<{data:'.($method->responseType?->toTypeScript($missingSymbols) ?? 'any')."}>;
+                    visit: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? 'any').", options?: Laramix.VisitOptions) => void;
+                }\n";
 
                 continue;
             }
@@ -132,7 +136,10 @@ class LaramixTypeTransformer implements Transformer
             if ($argument) {
                 $argument = 'payload: {'.$argument.'},';
             }
-            $ts .= "$actionName: ($argument options?: Laramix.VisitOptions) => Promise<any>;\n";
+            $ts .= "$actionName: {
+                call: ($argument) => Promise<any>;
+                visit: ($argument options?: Laramix.VisitOptions) => void;
+            }\n";
         }
 
         return "{ $ts }";
