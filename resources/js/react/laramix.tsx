@@ -289,17 +289,10 @@ const Laramix = ({ routes, manifest }: LaramixProps) => {
                     manifest,
                     components: preparedComponents,
                     eager: eager,
-                    depth: 0,
+                    depth: -1,
                 }}
             >
-                <>
-                    {preparedComponents[0].render?.({
-                        component: components[0].component,
-                        eager,
-                        props: components[0].props,
-                        actions: actions[components[0].component],
-                    })}
-                </>
+                <Outlet />
             </LaramixContext.Provider>
         );
     }
