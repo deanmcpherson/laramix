@@ -24,7 +24,7 @@
         "laravel/tinker": "^2",
         "spatie/enum": "^3",
         "spatie/laravel-data": "^4",
-        "inertiajs/inertia-laravel": "^1",
+        "inertiajs/inertia-laravel": "^2",
         "spatie/laravel-typescript-transformer": "^2"
     },
     "require-dev": {
