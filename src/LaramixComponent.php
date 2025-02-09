@@ -190,18 +190,12 @@ class LaramixComponent
         }
         foreach ($variables as $key => $value) {
             if ($value instanceof Action) {
-                $props['actions'][] = ($value->isInertia() ? '$' : '').$key;
+                $props['actions'][] = $key;
                 $props['_actions'][$key] = $value;
             }
 
             if ($value instanceof Closure && $key !== 'props') {
-
-                $reflection = new ReflectionFunction($value);
-                $returns = $reflection->getReturnType();
-                //? Could make default not an inertia response? Perhaps configurable.
-                $isInertia = (! $returns || is_a($returns->getName(), Response::class, true));
-
-                $props['actions'][] = $isInertia ? '$'.$key : $key;
+                $props['actions'][] = $key;
                 $props['_actions'][$key] = $value;
 
             }

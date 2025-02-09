@@ -43,30 +43,4 @@ class Action
 
     }
 
-    public function isInertia()
-    {
-
-        if ($this->isInertia) {
-            return true;
-        }
-
-        if ($this->isInertia === false) {
-            return false;
-        }
-
-        if ($this->responseType) {
-            return false;
-        }
-
-        if (! $this->handler) {
-            return false;
-        }
-        $reflection = new ReflectionFunction($this->handler);
-        $returnType = $reflection->getReturnType();
-        if (! $returnType || is_a($returnType->getName(), Response::class, true)) {
-            return true;
-        }
-
-        return false;
-    }
 }
