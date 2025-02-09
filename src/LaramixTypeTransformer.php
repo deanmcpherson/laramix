@@ -3,7 +3,8 @@
 namespace Laramix\Laramix;
 
 use Closure;
-use Laramix\Laramix\V\Types\BaseType;
+use Vod\Vod\Types\BaseType;
+use Vod\Vod\Vod;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -20,7 +21,7 @@ class LaramixTypeTransformer implements Transformer
     public function transform(ReflectionClass $class, string $name): ?TransformedType
     {
 
-        if (is_subclass_of($class->getName(), Validator::class, true)) {
+        if (is_subclass_of($class->getName(), Vod::class, true)) {
             $reflector = ClassTypeReflector::create($class);
             $missingSymbols = new MissingSymbolsCollection();
 

@@ -10,6 +10,7 @@ use Inertia\Response;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
 use ReflectionFunction;
+use Vod\Vod\Vod;
 
 class LaramixComponent
 {
@@ -92,7 +93,7 @@ class LaramixComponent
             return null;
         }
         $returns = $returns->getName();
-        if (is_subclass_of($returns, Validator::class, true)) {
+        if (is_subclass_of($returns, Vod::class, true)) {
             return app($returns)->defaults();
         }
 
@@ -266,7 +267,7 @@ class LaramixComponent
                 $component['props'] = $component['_props'](request()->route()->parameters());
             } else {
                 $component['props'] = ImplicitlyBoundMethod::call(app(), $component['_props'], request()->route()->parameters());
-                if (is_subclass_of($component['props'], Validator::class)) {
+                if (is_subclass_of($component['props'], Vod::class)) {
                     $component['props'] = $component['props']->__invoke();
                 }
             }

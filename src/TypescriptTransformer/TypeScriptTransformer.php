@@ -2,6 +2,7 @@
 
 namespace Laramix\Laramix\TypeScriptTransformer;
 
+use Illuminate\Support\Facades\File;
 use Laramix\Laramix\LaramixComponent;
 use Spatie\TypeScriptTransformer\Actions\FormatTypeScriptAction;
 use Spatie\TypeScriptTransformer\Actions\PersistTypesCollectionAction;
@@ -46,6 +47,28 @@ EOF;
 
         (new FormatTypeScriptAction($this->config))->execute();
 
+        $this->generateRouteTypes();
+
         return $typesCollection;
     }
+
+    public function generateRouteTypes()
+    {
+
+        $ts = "";
+
+        $routesDirectory = config('laramix.routes_directory');
+        $routeTypesPath = config('laramix.route_types_path');
+        collect(File::allFiles($routesDirectory))->map(function (\SplFileInfo $file) use (&$ts) {
+            $fileName =  $file->getFilenameWithoutExtension();
+            $ts .= "declare module './routes/$fileName.tsx' {
+    type Props = $fileName.Props
+     export default function(props: Props): JSX.Element
+ }" . PHP_EOL. PHP_EOL;
+        });
+      
+        $ts .= "export {}";
+        File::put($routeTypesPath, $ts);
+    }
+    
 }

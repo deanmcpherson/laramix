@@ -4,7 +4,7 @@ namespace Laramix\Laramix;
 
 use Closure;
 use Inertia\Response;
-use Laramix\Laramix\V\Types\BaseType;
+use Vod\Vod\Types\BaseType;
 use ReflectionFunction;
 
 class Action
@@ -13,7 +13,6 @@ class Action
         public ?Closure $handler,
         public ?BaseType $requestType = null,
         public ?BaseType $responseType = null,
-        public ?bool $isInertia = false,
         /**
          * @var array<string>
          */

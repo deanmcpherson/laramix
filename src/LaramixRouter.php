@@ -68,11 +68,14 @@ class LaramixRouter
 
                         return $middleware;
                     }, [])
+                
             );
             // This is a layout file, not a route.
             if ($parts->last()[0] === '' && ! str($parts->last()[1])->endsWith('_index')) {
                 $route->isLayout = true;
             }
+
+            
             $routes->push($route);
 
             return $routes;

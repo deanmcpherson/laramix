@@ -3,14 +3,13 @@
 namespace Laramix\Laramix;
 
 use Closure;
-use Laramix\Laramix\V\Types\BaseType;
-use Laramix\Laramix\V\V;
+use Vod\Vod\Types\BaseType;
+use Vod\Vod\V;
 
 function action(
     ?Closure $handler = null,
-    ?BaseType $requestType = null,
-    ?BaseType $responseType = null,
-    ?bool $isInertia = null,
+    BaseType|string|null $requestType = null,
+    BaseType|string|null $responseType = null,
     ?array $middleware = null
 ) {
     return new Action(
@@ -18,11 +17,11 @@ function action(
         requestType: $requestType,
         responseType: $responseType,
         middleware: $middleware,
-        isInertia: $isInertia
+        
     );
 }
 
 function v()
 {
-    return new V;
+    return new V();
 }

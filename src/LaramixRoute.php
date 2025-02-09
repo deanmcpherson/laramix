@@ -10,7 +10,7 @@ class LaramixRoute
         public string $path,
         public string $name,
         public array $middleware = [],
-        public bool $isLayout = false,
+        public bool $isLayout = false
     ) {}
 
     public function getPath(): string
