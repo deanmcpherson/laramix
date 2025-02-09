@@ -3,8 +3,6 @@
 namespace Laramix\Laramix;
 
 use Closure;
-use Vod\Vod\Types\BaseType;
-use Vod\Vod\Vod;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -13,6 +11,8 @@ use Spatie\TypeScriptTransformer\Structures\TransformedType;
 use Spatie\TypeScriptTransformer\Transformers\Transformer;
 use Spatie\TypeScriptTransformer\Transformers\TransformsTypes;
 use Spatie\TypeScriptTransformer\TypeReflectors\ClassTypeReflector;
+use Vod\Vod\Types\BaseType;
+use Vod\Vod\Vod;
 
 class LaramixTypeTransformer implements Transformer
 {
@@ -23,7 +23,7 @@ class LaramixTypeTransformer implements Transformer
 
         if (is_subclass_of($class->getName(), Vod::class, true)) {
             $reflector = ClassTypeReflector::create($class);
-            $missingSymbols = new MissingSymbolsCollection();
+            $missingSymbols = new MissingSymbolsCollection;
 
             return TransformedType::create(
                 $reflector->getReflectionClass(),
@@ -35,7 +35,7 @@ class LaramixTypeTransformer implements Transformer
         }
 
         if (is_a($class->getName(), Action::class, true)) {
-            $missingSymbols = new MissingSymbolsCollection();
+            $missingSymbols = new MissingSymbolsCollection;
 
             $reflector = ClassTypeReflector::create($class);
 
@@ -66,7 +66,7 @@ class LaramixTypeTransformer implements Transformer
 
     private function generateComponentTypes(ReflectionClass $class, LaramixComponent $component): ?TransformedType
     {
-        $missingSymbols = new MissingSymbolsCollection();
+        $missingSymbols = new MissingSymbolsCollection;
 
         $reflector = ClassTypeReflector::create($class);
 

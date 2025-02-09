@@ -23,7 +23,7 @@ class ResolveTypesCollectionAction extends \Spatie\TypeScriptTransformer\Actions
         foreach ($this->finder->in($paths) as $fileInfo) {
             try {
 
-                $classes = (new ResolveClassesInPhpFileAction())->execute($fileInfo);
+                $classes = (new ResolveClassesInPhpFileAction)->execute($fileInfo);
 
                 if (collect(['ts', 'tsx', 'jsx', 'js', 'php'])->contains($fileInfo->getExtension() && str($fileInfo->getPath())->contains(app(Laramix::class)->routeDirectory()))) {
 

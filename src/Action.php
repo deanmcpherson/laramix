@@ -3,9 +3,7 @@
 namespace Laramix\Laramix;
 
 use Closure;
-use Inertia\Response;
 use Vod\Vod\Types\BaseType;
-use ReflectionFunction;
 
 class Action
 {
@@ -42,5 +40,4 @@ class Action
         return $this->responseType->parse($responsePayload);
 
     }
-
 }

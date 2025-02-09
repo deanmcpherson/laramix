@@ -17,11 +17,11 @@ function action(
         requestType: $requestType,
         responseType: $responseType,
         middleware: $middleware,
-        
+
     );
 }
 
 function v()
 {
-    return new V();
+    return new V;
 }

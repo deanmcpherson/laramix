@@ -14,7 +14,7 @@ class Laramix
 
     public function routes()
     {
-        //view routes
+        // view routes
 
         $router = app(LaramixRouter::class);
 

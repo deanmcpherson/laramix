@@ -6,10 +6,8 @@ use Closure;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Response;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
-use ReflectionFunction;
 use Vod\Vod\Vod;
 
 class LaramixComponent
@@ -265,7 +263,7 @@ class LaramixComponent
                     $component['props'] = $component['props']->__invoke();
                 }
             }
-            //$component['props'] =  app()->call($component['_props'], request()->route()->parameters());
+            // $component['props'] =  app()->call($component['_props'], request()->route()->parameters());
             unset($component['_props']);
         }
 
