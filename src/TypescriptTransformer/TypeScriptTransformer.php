@@ -68,6 +68,9 @@ EOF;
         });
       
         $ts .= "export {}";
+
+        $routeTypePathDirectory = dirname($routeTypesPath);
+        File::ensureDirectoryExists($routeTypePathDirectory);
         File::put($routeTypesPath, $ts);
     }
     
