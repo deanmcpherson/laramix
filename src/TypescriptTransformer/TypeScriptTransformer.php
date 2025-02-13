@@ -32,7 +32,7 @@ EOF;
     public function transform(): TypesCollection
     {
         $typesCollection = (new ResolveTypesCollectionAction(
-            new Finder(),
+            new Finder,
             $this->config,
         ))->execute();
 
@@ -55,23 +55,22 @@ EOF;
     public function generateRouteTypes()
     {
 
-        $ts = "";
+        $ts = '';
 
         $routesDirectory = config('laramix.routes_directory');
         $routeTypesPath = config('laramix.route_types_path');
         collect(File::allFiles($routesDirectory))->map(function (\SplFileInfo $file) use (&$ts) {
-            $fileName =  $file->getFilenameWithoutExtension();
+            $fileName = $file->getFilenameWithoutExtension();
             $ts .= "declare module './routes/$fileName.tsx' {
     type Props = $fileName.Props
      export default function(props: Props): JSX.Element
- }" . PHP_EOL. PHP_EOL;
+ }".PHP_EOL.PHP_EOL;
         });
-      
-        $ts .= "export {}";
+
+        $ts .= 'export {}';
 
         $routeTypePathDirectory = dirname($routeTypesPath);
         File::ensureDirectoryExists($routeTypePathDirectory);
         File::put($routeTypesPath, $ts);
     }
-    
 }
