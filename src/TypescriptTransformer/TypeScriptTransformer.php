@@ -13,6 +13,8 @@ use Symfony\Component\Finder\Finder;
 class TypeScriptTransformer extends TypeScriptTransformerTypeScriptTransformer
 {
     private const hardcoded = <<<'EOF'
+    
+ 
     declare namespace Laramix {
         export interface VisitOptions {
             preserveScroll?: boolean
@@ -26,13 +28,19 @@ class TypeScriptTransformer extends TypeScriptTransformerTypeScriptTransformer
             onSuccess?: (page: any) => void
             onCancel?: () => void
         }
+
+        export interface ActionFn<Request, Response> {
+            call: (args: Request = {}, options?: any) => Promise<Response>;
+            visit: (args: Request = {}, options?: any) => Promise<Response>;
+            use: (options:import('@tanstack/react-query').UseMutationOptions = {}) => import('@tanstack/react-query').UseMutationResult<Response, any, any, any>;
+        }
     }
 EOF;
 
     public function transform(): TypesCollection
     {
         $typesCollection = (new ResolveTypesCollectionAction(
-            new Finder,
+            new Finder(),
             $this->config,
         ))->execute();
 
@@ -55,22 +63,30 @@ EOF;
     public function generateRouteTypes()
     {
 
-        $ts = '';
+        $ts = "";
 
         $routesDirectory = config('laramix.routes_directory');
         $routeTypesPath = config('laramix.route_types_path');
         collect(File::allFiles($routesDirectory))->map(function (\SplFileInfo $file) use (&$ts) {
-            $fileName = $file->getFilenameWithoutExtension();
-            $ts .= "declare module './routes/$fileName.tsx' {
-    type Props = $fileName.Props
+            $fileName =  $file->getFilename();
+            $nameWithoutExtension = $file->getFilenameWithoutExtension();
+            $names = [$fileName];
+            if ($file->getExtension() === 'mix') {
+                $names[] = '.mix.' . $fileName . '.tsx';
+            }
+            foreach ($names as $name) {
+            $ts .= "declare module './routes/$name' {
+    type Props = $nameWithoutExtension.Props
      export default function(props: Props): JSX.Element
- }".PHP_EOL.PHP_EOL;
+ }" . PHP_EOL. PHP_EOL;
+            }
         });
-
-        $ts .= 'export {}';
-
+        
+        $ts .= "export {}";
+        
         $routeTypePathDirectory = dirname($routeTypesPath);
         File::ensureDirectoryExists($routeTypePathDirectory);
         File::put($routeTypesPath, $ts);
     }
+    
 }

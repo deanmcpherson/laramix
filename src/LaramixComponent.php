@@ -5,9 +5,13 @@ namespace Laramix\Laramix;
 use Closure;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Response;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
+use Laravel\SerializableClosure\SerializableClosure;
 use ReflectionClass;
+use ReflectionFunction;
 use Vod\Vod\Vod;
 
 class LaramixComponent
@@ -20,6 +24,8 @@ class LaramixComponent
         $this->name = self::namespaceToName($name);
     }
 
+
+    public static bool $NOCACHE = true;
     public const NAMESPACE = 'LaramixComponent';
 
     public function exists()
@@ -106,18 +112,35 @@ class LaramixComponent
         if (isset(static::$compiled[$cacheName])) {
             return static::$compiled[$cacheName];
         }
-        $compiledCompoent = $this->_compile();
-        static::$compiled[$cacheName] = $compiledCompoent;
-
-        return $compiledCompoent;
+        $source =  @file_get_contents($this->filePath);
+        $sourceMd5 = md5($source);
+        if (static::$NOCACHE) {
+            $compiledCompoent = $this->_compile(serialized: false);
+            static::$compiled[$cacheName] = $compiledCompoent;
+            return $compiledCompoent;
+        } else {
+            $compiledCompoent = Cache::driver('file')->rememberForever('laramix-component:'.$sourceMd5, function (){
+                return $this->_compile();
+            });
+        }
+        static::$compiled[$cacheName] = $compiledCompoent();
+        return static::$compiled[$cacheName];
     }
 
-    private function _compile()
+    public function globalRouteName(): ?string
+    {
+        return $this->compile()['globalName'] ?? null;
+    }
+
+    private function _compile(bool $serialized = true)
     {
         $path = $this->filePath;
         $name = $this->name;
         $existingClasses = collect(get_declared_classes())->toArray();
         try {
+            flushName();
+            flushProps();
+            flushExposed();
             ob_start();
 
             $__path = $path;
@@ -173,39 +196,39 @@ class LaramixComponent
             ob_get_clean();
         }
 
-        $variables = $items['variables'];
+        $globalName = flushName();
+        $propCalled = flushProps();
+        $exposed = flushExposed();
+      //  $variables = $items['variables'];
         $classes = $items['classes'];
 
         $props = [
             'component' => $name,
             'props' => [],
+            'globalName' => $globalName,
             'actions' => [],
             '_actions' => [],
             '_classes' => $classes ?? [],
         ];
-        if ($variables['props'] ?? null && ($variables['props'] instanceof Closure || $variables['props'] instanceof Action)) {
-            $props['_props'] = $variables['props'];
+
+        if ($propCalled ?? null && ($propCalled instanceof Closure || $propCalled instanceof Action)) {
+            $props['_props'] = $propCalled;
         }
-        foreach ($variables as $key => $value) {
-            if ($value instanceof Action) {
-                $props['actions'][] = $key;
-                $props['_actions'][$key] = $value;
-            }
-
-            if ($value instanceof Closure && $key !== 'props') {
-                $props['actions'][] = $key;
-                $props['_actions'][$key] = $value;
-
-            }
+        foreach ($exposed as $key => $value) {
+            $props['actions'][] = $key;
+            $props['_actions'][$key] = $value;
         }
 
+        if ($serialized) {
+            $props['_classes'] = array_keys($props['_classes']);
+            return new SerializableClosure(fn() => $props);
+        }
         return $props;
     }
 
-    public function handleAction(Request $request, string $action)
+    public function handleAction(Request $request, string $action, array $args = [])
     {
         $component = $this->compile();
-        $args = $request->input('_args', []);
 
         if (in_array($action, $component['actions']) || in_array('$'.$action, $component['actions'])) {
             $actionFn = $component['_actions'][$action];
@@ -231,7 +254,7 @@ class LaramixComponent
         $component = $this->compile();
         $action = $component['_actions'][$actionName] ?? null;
         if ($action instanceof Action) {
-            return $action->middleware;
+            return $action->middleware ?? [];
         }
 
         return [];
@@ -263,7 +286,7 @@ class LaramixComponent
                     $component['props'] = $component['props']->__invoke();
                 }
             }
-            // $component['props'] =  app()->call($component['_props'], request()->route()->parameters());
+            //$component['props'] =  app()->call($component['_props'], request()->route()->parameters());
             unset($component['_props']);
         }
 

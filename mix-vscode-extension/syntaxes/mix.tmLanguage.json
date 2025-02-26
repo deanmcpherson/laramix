@@ -1,0 +1,94 @@
+{
+    "name": "Mix",
+    "scopeName": "source.mix",
+    "patterns": [
+        {
+            "begin": "(<)(mix)(\\s+)(lang)(=)(\")([^\"]+)(\")(>)",
+            "end": "(</)(mix)(>)",
+            "beginCaptures": {
+                "1": { "name": "punctuation.definition.tag.begin.mix" },
+                "2": { "name": "entity.name.tag.mix" },
+                "3": { "name": "whitespace.mix" },
+                "4": { "name": "entity.other.attribute-name.mix" },
+                "5": { "name": "punctuation.separator.key-value.mix" },
+                "6": { "name": "punctuation.definition.string.begin.mix" },
+                "7": { "name": "string.quoted.double.mix" },
+                "8": { "name": "punctuation.definition.string.end.mix" },
+                "9": { "name": "punctuation.definition.tag.end.mix" }
+            },
+            "endCaptures": {
+                "1": { "name": "punctuation.definition.tag.begin.mix" },
+                "2": { "name": "entity.name.tag.mix" },
+                "3": { "name": "punctuation.definition.tag.end.mix" }
+            },
+            "patterns": [
+                {
+                    "begin": "(?<=lang=\"tsx\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.tsx",
+                    "patterns": [{ "include": "source.tsx" }]
+                }, {
+                    "begin": "(?<=lang=\"ts\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.ts",
+                    "patterns": [{ "include": "source.ts" }]
+                },
+                {
+                    "begin": "(?<=lang=\"php\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.php",
+                    "patterns": [
+                        {
+                            "begin": "<\\?(?:php|=)?",
+                            "beginCaptures": {
+                                "0": { "name": "punctuation.section.embedded.begin.php" }
+                            },
+                            "end": "\\?>",
+                            "endCaptures": {
+                                "0": { "name": "punctuation.section.embedded.end.php" }
+                            },
+                            "name": "source.php",
+                            "contentName": "source.php",
+                            "patterns": [
+                                { "include": "source.php" }
+                            ]
+                        },
+                        {
+                            "include": "text.html.php"
+                        }
+                    ]
+                },
+                {
+                    "begin": "(?<=lang=\"(javascript|js)\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.javascript",
+                    "patterns": [{ "include": "source.js" }]
+                },
+                {
+                    "begin": "(?<=lang=\"(python|py)\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.python",
+                    "patterns": [{ "include": "source.python" }]
+                },
+                {
+                    "begin": "(?<=lang=\"css\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.css",
+                    "patterns": [{ "include": "source.css" }]
+                },
+                {
+                    "begin": "(?<=lang=\"vue\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.vue",
+                    "patterns": [{ "include": "source.vue" }]
+                },
+                {
+                    "begin": "(?<=lang=\"html\">)",
+                    "end": "(?=</mix>)",
+                    "contentName": "meta.embedded.block.html",
+                    "patterns": [{ "include": "text.html.basic" }]
+                }
+            ]
+        }
+    ]
+}

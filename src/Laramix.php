@@ -14,15 +14,9 @@ class Laramix
 
     public function routes()
     {
-        // view routes
+        //view routes
 
         $router = app(LaramixRouter::class);
-
-        $router->componentActionRoutes()->each(function (LaramixRoute $route) {
-            Route::middleware($route->middleware)->put($route->getPath(), [LaramixController::class, 'action'])
-                ->name($route->getName());
-        });
-
         $router
             ->routes()
             ->each(function (LaramixRoute $route) {
@@ -31,7 +25,9 @@ class Laramix
                 }
 
                 Route::middleware($route->middleware)->get($route->getPath(), [LaramixController::class, 'view'])
-                    ->name($route->getName());
+                    ->asLaramixRoute($route->getName())->name($route->getGlobalRouteName());
+
+                Route::middleware($route->middleware)->put($route->getPath(), [LaramixController::class, 'action']);
             });
     }
 
@@ -49,15 +45,18 @@ class Laramix
             })->values();
 
         $components = collect(scandir($this->routeDirectory()))
-            ->filter(fn ($file) => str($file)->endsWith(['.tsx', '.php']))
+            ->filter(fn ($file) => str($file)
+            ->endsWith(['.tsx', '.php', '.mix']))
+            ->filter(fn ($file) => ! str($file)->startsWith('.'))
             ->map(fn ($file) => str($file)
                 ->replaceLast('.tsx', '')
                 ->replaceLast('.php', '')
+                ->replaceLast('.mix', '')
                 ->toString())
             ->values()
             ->map(fn ($componentName) => $this->component($componentName)->toManifest())
             ->values();
-
+    
         return [
             'routes' => $routes,
             'components' => $components,
@@ -84,7 +83,10 @@ class Laramix
         if (! file_exists($filePath)) {
             $filePath = $this->routeDirectory().'/'.$componentName.'.php';
         }
-
+        if (! file_exists($filePath)) {
+            $filePath = $this->routeDirectory().'/'.$componentName.'.mix';
+        }
+   
         return new LaramixComponent(
             filePath: $filePath,
             name: $componentName

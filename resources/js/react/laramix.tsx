@@ -1,6 +1,7 @@
 import { router } from "@inertiajs/react";
 import axios from "axios";
-import React, { createContext, useState, useEffect, useContext, ElementType } from "react";
+
+import React, { createContext, useState, useEffect, useContext, ElementType, useMemo } from "react";
 
 const LaramixContext = createContext<{
     components: ResolvedComponent[];
@@ -10,6 +11,7 @@ const LaramixContext = createContext<{
         };
     }
     eager: true | undefined;
+    errors: any;
     depth: number;
     routes: LaramixProps['routes'];
     manifest: LaramixProps['manifest'];
@@ -25,23 +27,22 @@ const LaramixContext = createContext<{
     resolveInertiaPageFromPath: () => {},
 });
 
-function makeAction(component: string, action: string, isInertia: boolean) {
+function makeAction(component: string, action: string, tanstack?: any) {
     return {
-        call: (args: any, options: any) => axios.put(`/_laramix/${component}/${action}`, { _args: args }, options),
-        visit: (args: any, options: any) => router.put(`/_laramix/${component}/${action}`, { _args: args },  options),
+        use: (mutationOptions: any, options: any) => tanstack?.useMutation({
+            mutationFn: (args: any) => axios.put(window.location.href, { _args: args, _component: component, _action: action }, options).then((res) => res.data),
+            ...mutationOptions
+        }),
+        call: (args: any, options: any) => axios.put(window.location.href, { _args: args, _component: component, _action: action }, options),
+        visit: (args: any, options: any) => router.put(window.location.href, { _args: args, _component: component, _action: action },  options),
     }
 
 }
 
-function transformActions(component: ResolvedComponent) {
+function transformActions(component: ResolvedComponent, tanstack: any) {
     const actions: { [key: string]: (args: any) => any } = {};
     component.actions.forEach((action: string) => {
-        const isInertia = action.startsWith("$");
-        if (isInertia) {
-            action = action.slice(1);
-        }
-
-        actions[action] = makeAction(component.component, action, isInertia);
+        actions[action] = makeAction(component.component, action, tanstack);
     });
 
     return actions;
@@ -73,25 +74,34 @@ interface LaramixProps {
         components: Component[];
         routes: Route[];
     };
+    tanstack? : {useMutation: any, QueryClient: any, QueryClientProvider: any}
 }
 
 
-const Laramix = ({ routes, manifest }: LaramixProps) => {
+const Laramix = ({ routes, manifest, tanstack }: LaramixProps) => {
 
     const getRoutes = () => routes;
     const getManifest = () => manifest;
 
     const actions = manifest.components.reduce((result, component: any) => {
         if (component.actions) {
-            result[component.component] = transformActions(component);
+            result[component.component] = transformActions(component, tanstack);
         }
         return result;
     }, {});
 
 
     async function resolveComponent(component: string) {
+    
         const pages = getRoutes();
-        const page = pages[`./routes/${component}.tsx`];
+        
+        let page = pages[`./routes/${component}.tsx`];
+        if (!page) {
+            page = pages[`./routes/${component}.mix`];
+        }
+        if (!page) {
+            page = pages[`./routes/${component}.php`];
+        }
         if (typeof page === 'function') {
             return page();
         }
@@ -266,20 +276,40 @@ const Laramix = ({ routes, manifest }: LaramixProps) => {
     function LaramixContainer({
         components,
         eager,
+        errors,
+        parameters,
+        late
     }: {
         components: Component[];
         eager: true | undefined;
+        errors: any;
+        parameters: any;
+        late: any
     }) {
+
+       
         const ComponentModules = useComponents(components);
 
-        const preparedComponents : ResolvedComponent[]= components.map((component) => {
+        const preparedComponents : ResolvedComponent[]= components.map((component, i) => {
+
+            if (late?.components?.[i]) {
+                for (const key in late.components[i]) {
+                    component.props[key] = late.components[i][key];
+                }
+            }
+
             return {
                 ...component,
+                index: i,
                 render: ComponentModules[component.component],
             };
         });
 
+        const QueryClientProvider = tanstack?.QueryClientProvider ?? React.Fragment;
+        const queryClient = useMemo(() => tanstack ? new tanstack.QueryClient() : null, []);
+        
         return (
+            <QueryClientProvider client={queryClient}>
             <LaramixContext.Provider
                 value={{
                     actions,
@@ -287,6 +317,7 @@ const Laramix = ({ routes, manifest }: LaramixProps) => {
                     resolveInertiaPageFromPath,
                     routes,
                     manifest,
+                    errors,
                     components: preparedComponents,
                     eager: eager,
                     depth: -1,
@@ -294,6 +325,7 @@ const Laramix = ({ routes, manifest }: LaramixProps) => {
             >
                 <Outlet />
             </LaramixContext.Provider>
+            </QueryClientProvider>
         );
     }
     return LaramixContainer;
@@ -306,12 +338,44 @@ export function useActions<T>() {
     return actions as T;
 }
 
+function transformKeysToAdditional(keys: string[], index: number) {
+    return keys.map((key) => {
+        return `late.components.${index}.${key}`
+    })
+}
+
+
+
+function makeRouter(component: any) {
+    const r: router = {};
+    Object.setPrototypeOf(r, router);
+    r.reload = (options: any) => {
+    
+        const prepared: any = {
+            
+        }
+
+        if (options.only) {
+            prepared.only = transformKeysToAdditional(options.only, component.index)
+        }
+        if (options.except) {
+            prepared.except = transformKeysToAdditional(options.except, component.index)
+        }
+        router.reload(prepared)
+    }
+    return r;
+}
+
 export function Outlet() {
     const context = useContext(LaramixContext);
     const { components, depth, eager } = context;
     const newDepth = depth + 1;
     const nextComponent = components[newDepth];
     const Component = nextComponent?.render as ElementType;
+    const localRouter = useMemo(() => nextComponent ? makeRouter(nextComponent) : null, [nextComponent?.index]);
+    if (!nextComponent) {
+        return null;
+    }
     return (
         <LaramixContext.Provider
             value={{
@@ -324,8 +388,13 @@ export function Outlet() {
                 <Component
                 component={nextComponent.component}
                 eager={eager}
+                router={
+                    localRouter
+                }
                 key={newDepth + nextComponent?.component}
                 props={nextComponent.props}
+                errors={context.errors}
+                parameters={context.parameters}
                 actions={context.actions[nextComponent.component]}
                 />)}
 

@@ -1,5 +1,3 @@
-import path from 'path';
-
 export default function laramixVite() {
 
     return {
@@ -16,7 +14,7 @@ export default function laramixVite() {
                 },
                 esbuild: {
                     ...config.esbuild,
-                    include: /\.(js|ts|jsx|tsx|php)$/, // .myext
+                    include: /\.(js|ts|jsx|tsx|php|mix)$/, // .myext
                     loader: "tsx",
                 }
             };

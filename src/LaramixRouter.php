@@ -2,6 +2,8 @@
 
 namespace Laramix\Laramix;
 
+use Illuminate\Support\Arr;
+
 class LaramixRouter
 {
     public function routes(): \Illuminate\Support\Collection
@@ -9,8 +11,9 @@ class LaramixRouter
 
         $directory = app(Laramix::class)->routeDirectory();
         $files = collect(scandir($directory))
-            ->filter(fn ($file) => str($file)->endsWith(['.tsx', '.php']))
-            ->map(fn ($file) => str($file)->replaceLast('.tsx', '')->replaceLast('.php', '')->toString())
+            ->filter(fn ($file) => str($file)->endsWith(['.tsx', '.php', '.mix']))
+            ->filter(fn ($file) => ! str($file)->startsWith('.'))
+            ->map(fn ($file) => str($file)->replaceLast('.tsx', '')->replaceLast('.php', '')->replaceLast('.mix', '')->toString())
             ->values();
         $hasRoot = $files->contains('_root');
 
@@ -56,25 +59,42 @@ class LaramixRouter
                 $parts->unshift(['', '_root']);
             }
 
+            $filteredComponentNames = $parts->map(fn ($part) => $part[1])->filter();
+
+            [$middleware, $routeName] = $filteredComponentNames
+            ->reduce(function (array $acc, $componentName) use ($filteredComponentNames) {
+                $middleware = $acc[0];
+                $routeName = $acc[1];
+
+                $component = app(Laramix::class)->component($componentName);
+                $middleware = array_merge($middleware, $component->middlewareFor('props') ?? []);
+                $middleware = array_unique($middleware);
+              
+                if ($filteredComponentNames->last() === $componentName) {
+                    $routeName = $component->globalRouteName() ?? '';
+                }
+
+                return [$middleware, $routeName];
+            }, [
+                 [],
+                ''
+            ]);
             $route = new LaramixRoute(
                 $parts->map(fn ($part) => $part[0])->join('/'),
                 $parts->map(fn ($part) => $part[1])->filter()->join('|'),
-                $parts->map(fn ($part) => $part[1])->filter()
-                    ->reduce(function ($middleware, $componentName) {
+                $middleware
+                );
 
-                        $middleware = array_merge($middleware,
-                            app(Laramix::class)->component($componentName)->middlewareFor('props') ?? []);
-                        $middleware = array_unique($middleware);
-
-                        return $middleware;
-                    }, [])
-
-            );
+            if ($routeName) {
+                $route->globalRouteName = $routeName;
+            }
+           
             // This is a layout file, not a route.
             if ($parts->last()[0] === '' && ! str($parts->last()[1])->endsWith('_index')) {
                 $route->isLayout = true;
             }
 
+            
             $routes->push($route);
 
             return $routes;
@@ -84,22 +104,6 @@ class LaramixRouter
             });
 
         return $routes;
-    }
-
-    public function componentActionRoutes()
-    {
-        $actionRoutes = collect([]);
-        foreach ($this->routes() as $route) {
-            $routeComponentNames = str($route->name)->explode('|');
-            $lastComponent = app(Laramix::class)->component($routeComponentNames->last());
-
-            foreach ($lastComponent->actions() as $actionName => $actionValue) {
-                $middleware = array_merge($route->middleware, $lastComponent->middlewareFor($actionName) ?? []);
-                $actionRoutes[] = new LaramixRoute('_laramix/'.$lastComponent->getName().'/'.$actionName, $route->getName().'.'.$actionName, $middleware);
-            }
-        }
-
-        return $actionRoutes;
     }
 
     public function resolve(string $routeName): LaramixRoute

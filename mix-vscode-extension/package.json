@@ -1,0 +1,63 @@
+{
+  "name": "vscode-mix-language",
+  "displayName": "Mix Language Support",
+  "description": ".mix is a generic way to mix and match languages in a single file",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "publisher": "your-publisher-name",
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:mix",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:php",
+    "onLanguage:python",
+    "onLanguage:css",
+    "onLanguage:html",
+    "onLanguage:vue"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "mix",
+        "aliases": ["mix"],
+        "extensions": [".mix"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mix",
+        "scopeName": "source.mix",
+        "path": "./syntaxes/mix.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^16.x.x",
+    "@typescript-eslint/eslint-plugin": "^6.x.x",
+    "@typescript-eslint/parser": "^6.x.x",
+    "eslint": "^8.x.x",
+    "typescript": "^5.x.x"
+  },
+  "capabilities": {
+    "virtualWorkspaces": true,
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  }
+}

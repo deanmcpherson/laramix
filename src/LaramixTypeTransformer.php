@@ -3,6 +3,7 @@
 namespace Laramix\Laramix;
 
 use Closure;
+use Vod\Vod\Types\BaseType;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -11,8 +12,6 @@ use Spatie\TypeScriptTransformer\Structures\TransformedType;
 use Spatie\TypeScriptTransformer\Transformers\Transformer;
 use Spatie\TypeScriptTransformer\Transformers\TransformsTypes;
 use Spatie\TypeScriptTransformer\TypeReflectors\ClassTypeReflector;
-use Vod\Vod\Types\BaseType;
-use Vod\Vod\Vod;
 
 class LaramixTypeTransformer implements Transformer
 {
@@ -21,21 +20,8 @@ class LaramixTypeTransformer implements Transformer
     public function transform(ReflectionClass $class, string $name): ?TransformedType
     {
 
-        if (is_subclass_of($class->getName(), Vod::class, true)) {
-            $reflector = ClassTypeReflector::create($class);
-            $missingSymbols = new MissingSymbolsCollection;
-
-            return TransformedType::create(
-                $reflector->getReflectionClass(),
-                $reflector->getName(),
-                app($class->getName())->v()->toTypeScript($missingSymbols),
-                $missingSymbols
-            );
-
-        }
-
         if (is_a($class->getName(), Action::class, true)) {
-            $missingSymbols = new MissingSymbolsCollection;
+            $missingSymbols = new MissingSymbolsCollection();
 
             $reflector = ClassTypeReflector::create($class);
 
@@ -66,7 +52,7 @@ class LaramixTypeTransformer implements Transformer
 
     private function generateComponentTypes(ReflectionClass $class, LaramixComponent $component): ?TransformedType
     {
-        $missingSymbols = new MissingSymbolsCollection;
+        $missingSymbols = new MissingSymbolsCollection();
 
         $reflector = ClassTypeReflector::create($class);
 
@@ -79,6 +65,9 @@ class LaramixTypeTransformer implements Transformer
             "{
                 props: $propTypes;
                 actions: $actionTypes;
+                parameters: any;
+                errors: any;
+                router: import('@inertiajs/core').Router;
                 eager: true|undefined;
              }",
             $missingSymbols
@@ -115,12 +104,8 @@ class LaramixTypeTransformer implements Transformer
 
             if ($method instanceof Action) {
                 $inputType = $method->requestType?->toTypeScript($missingSymbols) ?? 'any';
-                $optional = $inputType === 'any' || $method->requestType?->isOptional() ? '?' : '';
-                $ts .= "$actionName:
-                {
-                    call: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? 'any').') => Promise<{data:'.($method->responseType?->toTypeScript($missingSymbols) ?? 'any')."}>;
-                    visit: (input{$optional}: ".($method->requestType?->toTypeScript($missingSymbols) ?? 'any').", options?: Laramix.VisitOptions) => void;
-                }\n";
+            
+                $ts .= "$actionName: Laramix.ActionFn<$inputType, ".($method->responseType?->toTypeScript($missingSymbols) ?? 'any').">;\n";
 
                 continue;
             }
@@ -135,12 +120,13 @@ class LaramixTypeTransformer implements Transformer
             }
 
             if ($argument) {
-                $argument = 'payload: {'.$argument.'},';
+                $argument = '{'.$argument.'}';
             }
-            $ts .= "$actionName: {
-                call: ($argument) => Promise<any>;
-                visit: ($argument options?: Laramix.VisitOptions) => void;
-            }\n";
+            else {
+                $argument = 'any';
+            }
+            
+            $ts .= "$actionName: Laramix.ActionFn<$argument, any>;\n";
         }
 
         return "{ $ts }";

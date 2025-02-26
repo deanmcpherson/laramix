@@ -19,6 +19,12 @@ class PublishLaramixRoutesManifest extends Command
     ): int {
         $outputFile = $this->resolveOutputFile();
 
+        $manifest = json_encode($laramix->routesManifest());
+        if (File::exists($outputFile) && $manifest === File::get($outputFile)) {
+            $this->info('No changes to the manifest file');
+            return 0;
+        }
+
         File::put($outputFile, json_encode($laramix->routesManifest()));
 
         return 0;

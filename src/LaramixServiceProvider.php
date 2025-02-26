@@ -2,6 +2,7 @@
 
 namespace Laramix\Laramix;
 
+use Illuminate\Routing\Route;
 use Laramix\Laramix\Commands\PublishLaramixRoutesManifest;
 use Laramix\Laramix\Commands\TypeScriptTransformCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -21,5 +22,17 @@ class LaramixServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasCommand(TypeScriptTransformCommand::class)
             ->hasCommand(PublishLaramixRoutesManifest::class);
+        
+        Route::macro('asLaramixRoute', function(string $path) {
+            $this->laramixRoute = $path;
+            return $this;
+        });
+
+        Route::macro('laramixRoute', function() {
+            if (isset($this->laramixRoute)) {
+                return $this->laramixRoute;
+            }
+            return null;
+        });
     }
 }
