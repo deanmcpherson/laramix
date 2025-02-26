@@ -7,11 +7,9 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Response;
-use Laravel\SerializableClosure\Support\ReflectionClosure;
 use Laravel\SerializableClosure\SerializableClosure;
+use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionClass;
-use ReflectionFunction;
 use Vod\Vod\Vod;
 
 class LaramixComponent
@@ -24,8 +22,8 @@ class LaramixComponent
         $this->name = self::namespaceToName($name);
     }
 
-
     public static bool $NOCACHE = true;
+
     public const NAMESPACE = 'LaramixComponent';
 
     public function exists()
@@ -112,18 +110,20 @@ class LaramixComponent
         if (isset(static::$compiled[$cacheName])) {
             return static::$compiled[$cacheName];
         }
-        $source =  @file_get_contents($this->filePath);
+        $source = @file_get_contents($this->filePath);
         $sourceMd5 = md5($source);
         if (static::$NOCACHE) {
             $compiledCompoent = $this->_compile(serialized: false);
             static::$compiled[$cacheName] = $compiledCompoent;
+
             return $compiledCompoent;
         } else {
-            $compiledCompoent = Cache::driver('file')->rememberForever('laramix-component:'.$sourceMd5, function (){
+            $compiledCompoent = Cache::driver('file')->rememberForever('laramix-component:'.$sourceMd5, function () {
                 return $this->_compile();
             });
         }
         static::$compiled[$cacheName] = $compiledCompoent();
+
         return static::$compiled[$cacheName];
     }
 
@@ -199,7 +199,7 @@ class LaramixComponent
         $globalName = flushName();
         $propCalled = flushProps();
         $exposed = flushExposed();
-      //  $variables = $items['variables'];
+        //  $variables = $items['variables'];
         $classes = $items['classes'];
 
         $props = [
@@ -221,8 +221,10 @@ class LaramixComponent
 
         if ($serialized) {
             $props['_classes'] = array_keys($props['_classes']);
-            return new SerializableClosure(fn() => $props);
+
+            return new SerializableClosure(fn () => $props);
         }
+
         return $props;
     }
 
@@ -286,7 +288,7 @@ class LaramixComponent
                     $component['props'] = $component['props']->__invoke();
                 }
             }
-            //$component['props'] =  app()->call($component['_props'], request()->route()->parameters());
+            // $component['props'] =  app()->call($component['_props'], request()->route()->parameters());
             unset($component['_props']);
         }
 

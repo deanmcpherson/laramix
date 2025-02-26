@@ -3,7 +3,6 @@
 namespace Laramix\Laramix;
 
 use Closure;
-use Vod\Vod\Types\BaseType;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -12,6 +11,7 @@ use Spatie\TypeScriptTransformer\Structures\TransformedType;
 use Spatie\TypeScriptTransformer\Transformers\Transformer;
 use Spatie\TypeScriptTransformer\Transformers\TransformsTypes;
 use Spatie\TypeScriptTransformer\TypeReflectors\ClassTypeReflector;
+use Vod\Vod\Types\BaseType;
 
 class LaramixTypeTransformer implements Transformer
 {
@@ -21,7 +21,7 @@ class LaramixTypeTransformer implements Transformer
     {
 
         if (is_a($class->getName(), Action::class, true)) {
-            $missingSymbols = new MissingSymbolsCollection();
+            $missingSymbols = new MissingSymbolsCollection;
 
             $reflector = ClassTypeReflector::create($class);
 
@@ -52,7 +52,7 @@ class LaramixTypeTransformer implements Transformer
 
     private function generateComponentTypes(ReflectionClass $class, LaramixComponent $component): ?TransformedType
     {
-        $missingSymbols = new MissingSymbolsCollection();
+        $missingSymbols = new MissingSymbolsCollection;
 
         $reflector = ClassTypeReflector::create($class);
 
@@ -104,7 +104,7 @@ class LaramixTypeTransformer implements Transformer
 
             if ($method instanceof Action) {
                 $inputType = $method->requestType?->toTypeScript($missingSymbols) ?? 'any';
-            
+
                 $ts .= "$actionName: Laramix.ActionFn<$inputType, ".($method->responseType?->toTypeScript($missingSymbols) ?? 'any').">;\n";
 
                 continue;
@@ -121,11 +121,10 @@ class LaramixTypeTransformer implements Transformer
 
             if ($argument) {
                 $argument = '{'.$argument.'}';
-            }
-            else {
+            } else {
                 $argument = 'any';
             }
-            
+
             $ts .= "$actionName: Laramix.ActionFn<$argument, any>;\n";
         }
 

@@ -2,8 +2,6 @@
 
 namespace Laramix\Laramix;
 
-use Illuminate\Support\Arr;
-
 class LaramixRouter
 {
     public function routes(): \Illuminate\Support\Collection
@@ -62,39 +60,38 @@ class LaramixRouter
             $filteredComponentNames = $parts->map(fn ($part) => $part[1])->filter();
 
             [$middleware, $routeName] = $filteredComponentNames
-            ->reduce(function (array $acc, $componentName) use ($filteredComponentNames) {
-                $middleware = $acc[0];
-                $routeName = $acc[1];
+                ->reduce(function (array $acc, $componentName) use ($filteredComponentNames) {
+                    $middleware = $acc[0];
+                    $routeName = $acc[1];
 
-                $component = app(Laramix::class)->component($componentName);
-                $middleware = array_merge($middleware, $component->middlewareFor('props') ?? []);
-                $middleware = array_unique($middleware);
-              
-                if ($filteredComponentNames->last() === $componentName) {
-                    $routeName = $component->globalRouteName() ?? '';
-                }
+                    $component = app(Laramix::class)->component($componentName);
+                    $middleware = array_merge($middleware, $component->middlewareFor('props') ?? []);
+                    $middleware = array_unique($middleware);
 
-                return [$middleware, $routeName];
-            }, [
-                 [],
-                ''
-            ]);
+                    if ($filteredComponentNames->last() === $componentName) {
+                        $routeName = $component->globalRouteName() ?? '';
+                    }
+
+                    return [$middleware, $routeName];
+                }, [
+                    [],
+                    '',
+                ]);
             $route = new LaramixRoute(
                 $parts->map(fn ($part) => $part[0])->join('/'),
                 $parts->map(fn ($part) => $part[1])->filter()->join('|'),
                 $middleware
-                );
+            );
 
             if ($routeName) {
                 $route->globalRouteName = $routeName;
             }
-           
+
             // This is a layout file, not a route.
             if ($parts->last()[0] === '' && ! str($parts->last()[1])->endsWith('_index')) {
                 $route->isLayout = true;
             }
 
-            
             $routes->push($route);
 
             return $routes;

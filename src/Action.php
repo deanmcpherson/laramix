@@ -3,11 +3,9 @@
 namespace Laramix\Laramix;
 
 use Closure;
-use Inertia\Response;
 use Laravel\SerializableClosure\SerializableClosure;
 use Laravel\SerializableClosure\Serializers\Native;
 use Vod\Vod\Types\BaseType;
-use ReflectionFunction;
 
 class Action
 {
@@ -21,28 +19,31 @@ class Action
         public ?array $middleware = null
     ) {}
 
-
     public function withMiddleware(array $middleware): self
     {
         $this->middleware = $middleware;
+
         return $this;
     }
 
     public function returns(BaseType $responseType): self
     {
         $this->responseType = $responseType;
+
         return $this;
     }
 
     public function expects(BaseType $requestType): self
     {
         $this->requestType = $requestType;
+
         return $this;
     }
 
     public function handler(Closure|SerializableClosure $handler): self
     {
         $this->handler = $handler;
+
         return $this;
     }
 
@@ -63,8 +64,8 @@ class Action
         if ($this->responseType === null) {
             return $responsePayload;
         }
+
         return $this->responseType->parse($responsePayload);
 
     }
-
 }

@@ -17,7 +17,7 @@ class LaramixController extends Controller
 
     public function action(Request $request, Laramix $laramix)
     {
-       $data = v()        
+        $data = v()
             ->object([
                 '_component' => v()->string(),
                 '_action' => v()->string(),
@@ -29,6 +29,6 @@ class LaramixController extends Controller
         $args = $data['_args'] ?? [];
 
         return $laramix->component($component)->handleAction($request, $action, $args);
-        
+
     }
 }

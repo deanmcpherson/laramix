@@ -27,12 +27,12 @@ class LaramixRoute
         return $this->name;
     }
 
-
     public function getGlobalRouteName(): string
     {
         if ($this->globalRouteName) {
             return $this->globalRouteName;
         }
+
         return $this->name;
     }
 
@@ -59,31 +59,30 @@ class LaramixRoute
         $components = $this->components()->map(fn ($component) => $component->props())->toArray();
 
         $additional = [];
-    
+
         foreach ($components as $componentIndex => $component) {
-       
+
             if (is_a($component['props'], RedirectResponse::class)) {
                 return $component['props'];
             }
             if (is_array($component['props'])) {
                 foreach ($component['props'] as $key => $value) {
                     if (is_a($value, DeferProp::class)) {
-                        $additional['late.components.'. $componentIndex . '.' . $key] = $value;
+                        $additional['late.components.'.$componentIndex.'.'.$key] = $value;
                         unset($components[$componentIndex]['props'][$key]);
                     }
                     if (is_a($value, LazyProp::class)) {
-                        $additional['late.components.'. $componentIndex . '.' . $key] = $value;
+                        $additional['late.components.'.$componentIndex.'.'.$key] = $value;
                         unset($components[$componentIndex]['props'][$key]);
                     }
                 }
             }
         }
-        
-       
+
         return Inertia::render('Laramix', [
             'components' => $components,
             'parameters' => request()->route()->parameters(),
-            ...$additional
+            ...$additional,
         ]);
 
     }

@@ -22,16 +22,18 @@ class LaramixServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasCommand(TypeScriptTransformCommand::class)
             ->hasCommand(PublishLaramixRoutesManifest::class);
-        
-        Route::macro('asLaramixRoute', function(string $path) {
+
+        Route::macro('asLaramixRoute', function (string $path) {
             $this->laramixRoute = $path;
+
             return $this;
         });
 
-        Route::macro('laramixRoute', function() {
+        Route::macro('laramixRoute', function () {
             if (isset($this->laramixRoute)) {
                 return $this->laramixRoute;
             }
+
             return null;
         });
     }

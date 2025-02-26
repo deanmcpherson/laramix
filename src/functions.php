@@ -18,75 +18,85 @@ function action(
         requestType: $requestType,
         responseType: $responseType,
         middleware: $middleware,
-        
+
     );
 }
 
 function v()
 {
-    return new V();
+    return new V;
 }
-
-
 
 $props = [];
 
-function flushProps() {
+function flushProps()
+{
     global $props;
     $result = $props;
     $props = [];
+
     return $result;
 }
 
 $exposed = [];
-function flushExposed() {
+function flushExposed()
+{
     global $exposed;
-    $result = $exposed;  
+    $result = $exposed;
     $exposed = [];
+
     return $result;
 }
 
-function expose(...$args) {
-    
+function expose(...$args)
+{
+
     global $exposed;
     $exposed = $args;
 }
 
-function props(array|Closure|Action $args) {
+function props(array|Closure|Action $args)
+{
     global $props;
     if (is_array($args)) {
-        $props = fn() => $args;
+        $props = fn () => $args;
     } else {
         $props = $args;
     }
 }
 
 $name = '';
-function name(string $routeName) {
+function name(string $routeName)
+{
     global $name;
     $name = $routeName;
 }
 
-function flushName() {
+function flushName()
+{
     global $name;
     $result = $name;
     $name = '';
+
     return $result;
 }
 
-function defer(Closure|Action $args, ?string $group = null) {
-    if (!$group) {
-        return Inertia::defer(function() use ($args) {
+function defer(Closure|Action $args, ?string $group = null)
+{
+    if (! $group) {
+        return Inertia::defer(function () use ($args) {
             return $args();
         });
     }
-    return Inertia::defer(function() use ($args) {
+
+    return Inertia::defer(function () use ($args) {
         return $args();
     }, $group);
 }
 
-function lazy(Closure|Action $args) {
-    return Inertia::lazy(function() use ($args) {
+function lazy(Closure|Action $args)
+{
+    return Inertia::lazy(function () use ($args) {
         return $args();
-    });    
+    });
 }
